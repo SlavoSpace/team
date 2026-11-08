@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>Zespół</title>
-<meta name="team-wersja" content="1.0.1 · 2026-11-08">
+<meta name="team-wersja" content="1.0.2 · 2026-11-08">
 <meta name="robots" content="noindex, nofollow">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="favicon.png">
@@ -335,6 +335,10 @@ table.tab{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
 @keyframes wsunD{from{transform:translateY(40px)}to{transform:none}}
 .sz-g{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .sz-g h2{font-family:var(--f-tyt);font-weight:400;font-size:32px;letter-spacing:.04em;line-height:1}
+.kz-nag{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px}
+.kz-tel{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px;border:1px solid var(--ramka2);border-radius:999px;background:var(--pow2);color:var(--tekst);font:600 15px/1 var(--f-mono);text-decoration:none;white-space:nowrap}
+.kz-tel:hover{border-color:var(--akcja);color:var(--akcja)}
+.kz-tel.brak{border-style:dashed;background:none;color:var(--tekst3);font:500 13px/1 var(--f-tresc)}
 .sz-sek{display:flex;flex-direction:column;gap:8px}
 .pasek{display:flex;height:10px;border-radius:999px;overflow:hidden;background:var(--pow3);gap:2px}
 .pasek i{display:block;height:100%}
@@ -2675,7 +2679,7 @@ function kartaZalogi(id) {
   const poza = p.rola === 'Zarząd' && !(z.roleDod || []).some(r => ROLE_ZM.includes(r)) ? ' · poza grafikiem' : '';
   const jez = `<div class="seg" role="group" aria-label="Język widoku pracownika"><button data-a="zJez" data-id="${id}" data-v="pl" aria-pressed="${(z.jezyk || 'pl') === 'pl'}">Polski</button><button data-a="zJez" data-id="${id}" data-v="ua" aria-pressed="${z.jezyk === 'ua'}">Українська</button></div>`;
   $('#nakladka').innerHTML = `<div class="zaslona" data-a="zamknij"><aside class="szuflada szeroka" data-karta="${id}" role="dialog" aria-modal="true" aria-labelledby="kz-t" data-stop="1">
-    <div class="sz-g"><div><span class="etykieta">Karta w Załodze</span><h2 id="kz-t">${esc(pelne(p))}</h2><p class="mala" style="margin-top:6px">${esc(loginOf(p))} · ${esc(ROLA_1[p.rola])}${poza}</p>
+    <div class="sz-g"><div><span class="etykieta">Karta w Załodze</span><div class="kz-nag"><h2 id="kz-t">${esc(pelne(p))}</h2>${telKarta(p)}</div><p class="mala" style="margin-top:6px">${esc(loginOf(p))} · ${esc(ROLA_1[p.rola])}${poza}</p>
       <div class="przyciski" style="margin-top:10px"><button class="btn" data-a="osoba" data-id="${id}">${ik.kalendarz} Grafik i historia</button>${arch ? `<button class="btn" data-a="podglad" data-id="${id}">${ik.oko} Zobacz jako ${esc(p.im)}</button>` : ''}</div></div>
       <button class="ikbtn" data-a="zamknij" aria-label="Zamknij">${ik.x}</button></div>
     ${sekcjaRol(id)}
@@ -3635,6 +3639,20 @@ function stopka() {
   const czasZ = d => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
   const st = SYNC.blad ? 'bez połączenia — zapiszę, gdy wróci sieć' : ZAPISANO ? `zapisane ${czasZ(ZAPISANO)}` : '';
   el.textContent = `team.dysza.app · Pracownia Sushi · obecności: arkusze Z i raporty dnia (do ${DO_LIS || '—'})${st ? ' · ' + st : ''}`;
+}
+
+/* ───────── telefon w karcie Załogi (z kartoteki managera; baza przysyła go tylko HR i Architektowi) ───────── */
+const IK_TEL = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.7 2z"/></svg>';
+function telTxt(t) {                                          // +48600123456 → +48 600 123 456; +380501234567 → +380 50 123 45 67
+  const s = String(t || ''); let m;
+  if ((m = s.match(/^\+48(\d{3})(\d{3})(\d{3})$/))) return `+48 ${m[1]} ${m[2]} ${m[3]}`;
+  if ((m = s.match(/^\+380(\d{2})(\d{3})(\d{2})(\d{2})$/))) return `+380 ${m[1]} ${m[2]} ${m[3]} ${m[4]}`;
+  return s;
+}
+function telKarta(p) {
+  if (!p || p.tel === undefined) return '';
+  if (!p.tel) return '<span class="kz-tel brak" title="Telefon wpisuje się w manager.dysza.app → Dane">brak telefonu</span>';
+  return `<a class="kz-tel" href="tel:${esc(p.tel)}" aria-label="Zadzwoń: ${esc(telTxt(p.tel))}">${IK_TEL}${esc(telTxt(p.tel))}</a>`;
 }
 
 /* ───────── dane z bazy ───────── */
