@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>Zespół</title>
-<meta name="team-wersja" content="1.1 · 2026-11-08">
+<meta name="team-wersja" content="1.2 · 2026-11-08">
 <meta name="robots" content="noindex, nofollow">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="favicon.png">
@@ -103,6 +103,9 @@ main{max-width:1440px;margin:0 auto;padding:22px max(20px,env(safe-area-inset-ri
 @media (max-width:600px){.karta{padding:14px 14px;border-radius:16px}}
 .karta-gl{display:flex;align-items:flex-end;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;margin-bottom:14px}
 .karta-gl h2{font-family:var(--f-tyt);font-weight:400;letter-spacing:.05em;font-size:26px;line-height:1}
+.wyp-tyt{display:flex;align-items:center;flex-wrap:wrap;gap:10px 20px;margin-top:4px}
+.druk-p{display:flex;flex-wrap:wrap;gap:8px}
+.btn:disabled{opacity:.6;cursor:default}
 .karta-gl .opis{font-size:13.5px;color:var(--tekst2);max-width:70ch;margin-top:5px}
 .przyciski{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .btn{min-height:38px;padding:0 13px;border-radius:10px;border:1px solid var(--ramka2);background:var(--pow2);font-size:13.5px;font-weight:700;display:inline-flex;align-items:center;gap:7px;color:var(--tekst)}
@@ -2051,7 +2054,7 @@ function stanPubl() {
   if (!S.publ) return { pill: '<span class="pill czeka">Projekt</span>', btn: `<button class="btn" data-a="publikuj">${ik.wyslij} Opublikuj grafik</button>`, nota: 'Załoga jeszcze go nie widzi.' };
   const o = czasZ(new Date(S.publ.kiedy));
   if (d) return { pill: '<span class="pill czeka">Zmiany po publikacji</span>', btn: `<button class="btn" data-a="publikuj">${ik.wyslij} Opublikuj zmiany</button>`, nota: `Opublikowany o ${o} · od tego czasu ${d} ${odm(d, 'zmiana', 'zmiany', 'zmian')}.` };
-  return { pill: `<span class="pill tak">${ik.ok} Opublikowany ${o}</span>`, btn: `<button class="btn" disabled>${ik.ok} Opublikowany</button>`, nota: `Wariant ${S.publ.wersja} · każdy widzi swój grudzień.` };
+  return { pill: `<span class="pill tak">${ik.ok} Opublikowany ${o}</span>`, btn: mozeHR() ? `<button class="btn" data-a="drukGrafik" data-test="druk-grafik">${IK_DRUK}<span>Wydrukuj opublikowany</span></button>` : `<button class="btn" disabled>${ik.ok} Opublikowany</button>`, nota: `Wariant ${S.publ.wersja} · każdy widzi swój grudzień.` };
 }
 function opcjaSM() {
   const n = S.res ? R().smOkN || 0 : 0;
@@ -2511,7 +2514,7 @@ const ROLE_K = [...ROLE_ZM, ...ROLE_DOD, ...ROLE_BIURO];
 const MIES_ROZL = '2026-11'; // wypłata w toku — od niej liczą się raty
 const MIES_K = { pl: ['sty', 'lut', 'mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'wrz', 'paź', 'lis', 'gru'], ua: ['січ', 'лют', 'бер', 'кві', 'тра', 'чер', 'лип', 'сер', 'вер', 'жов', 'лис', 'гру'] };
 const MIES_POZ = [['2026-11', 'listopad'], ['2026-12', 'grudzień'], ['2027-01', 'styczeń 2027']];
-const PUSTA_ZAL = () => ({ roleDod: [], lok: null, stawkiRol: {}, zmianyStawek: [], badania: '', bhp: '', jezyk: 'pl', notatka: '' });
+const PUSTA_ZAL = () => ({ roleDod: [], lok: null, stawkiRol: {}, zmianyStawek: [], badania: '', bhp: '', jezyk: '', notatka: '' });
 function zal(id) { if (!S.zal[id]) S.zal[id] = PUSTA_ZAL(); return S.zal[id]; }
 function zalR(id) { return S.zal[id] || PUSTA_ZAL(); }
 function lokEff(id) { const z = S.zal[id], p = P[id]; if (z && z.lok) return z.lok; const tot = p.lok.F + p.lok.R; return { F: tot === 0 || p.lok.F > 0, R: tot === 0 || p.lok.R > 0 }; }
@@ -2688,7 +2691,7 @@ function kartaZalogi(id) {
   const wn = S.wnioski.filter(w => w.osoba === id).sort((a, b) => (a.stan === 'nowy' ? 0 : 1) - (b.stan === 'nowy' ? 0 : 1) || b.kiedy.localeCompare(a.kiedy)), nNowe = wn.filter(w => w.stan === 'nowy').length;
   const b1 = terminStan(z.badania), b2 = terminStan(z.bhp);
   const poza = p.rola === 'Zarząd' && !(z.roleDod || []).some(r => ROLE_ZM.includes(r)) ? ' · poza grafikiem' : '';
-  const jez = `<div class="seg" role="group" aria-label="Język widoku pracownika"><button data-a="zJez" data-id="${id}" data-v="pl" aria-pressed="${(z.jezyk || 'pl') === 'pl'}">Polski</button><button data-a="zJez" data-id="${id}" data-v="ua" aria-pressed="${z.jezyk === 'ua'}">Українська</button></div>`;
+  const jez = `<div class="seg" role="group" aria-label="Język widoku pracownika"><button data-a="zJez" data-id="${id}" data-v="pl" aria-pressed="${(z.jezyk || p.jezyk || 'pl') === 'pl'}">Polski</button><button data-a="zJez" data-id="${id}" data-v="ua" aria-pressed="${(z.jezyk || p.jezyk || 'pl') === 'ua'}">Українська</button></div>`;
   $('#nakladka').innerHTML = `<div class="zaslona" data-a="zamknij"><aside class="szuflada szeroka" data-karta="${id}" role="dialog" aria-modal="true" aria-labelledby="kz-t" data-stop="1">
     <div class="sz-g"><div><span class="etykieta">Karta w Załodze</span><div class="kz-nag"><h2 id="kz-t">${esc(pelne(p))}</h2>${telKarta(p)}</div><p class="mala" style="margin-top:6px">${esc(loginOf(p))} · ${esc(ROLA_1[p.rola])}${poza}</p>
       <div class="przyciski" style="margin-top:10px"><button class="btn" data-a="osoba" data-id="${id}">${ik.kalendarz} Grafik i historia</button>${arch ? `<button class="btn" data-a="podglad" data-id="${id}">${ik.oko} Zobacz jako ${esc(p.im)}</button>` : ''}</div></div>
@@ -3000,8 +3003,8 @@ function renderWyplaty() {
   const th = `<th class="os l">Osoba</th><th>Dni</th><th>Godz.</th>${KOL.map(x => `<th${NG[x][1] ? ` data-tip="${esc(NG[x][1])}"` : ''}>${NG[x][0]}</th>`).join('')}${edW ? '<th class="ed"><span class="sr">Kwoty</span></th>' : ''}`;
   const pWyp = [tot.rt ? `raty ${zl(tot.rt)}` : '', tot.przen ? `minus ${zl(Math.abs(tot.przen))}` : ''].filter(Boolean).join(' · ') || 'po potrąceniach';
   $('#tresc').innerHTML = `
-    <section class="karta"><div class="karta-gl"><div><span class="etykieta">Wypłaty${ro ? ' · podgląd' : ''}</span><h2 style="font-size:40px;margin-top:4px">${M.n} 2026</h2>
-      <p class="opis">${M.wtoku ? (edW ? 'Miesiąc w toku — dniówki rosną z raportów dnia. Bonus, dodatek, potrącenie, przelew i gotówkę wpisujesz ołówkiem w wierszu; puste pole = kwota z pliku Z.' : 'Miesiąc w toku — dniówki rosną z raportów dnia; kwoty wpisuje HR.') : 'Podkreślony nagłówek i gwiazdka pokazują, z czego jest kwota.'}</p></div>
+    <section class="karta"><div class="karta-gl"><div><span class="etykieta">Wypłaty${ro ? ' · podgląd' : ''}</span><div class="wyp-tyt"><h2 style="font-size:40px">${M.n} 2026</h2>${ro ? '' : przyciskiWyplat()}</div>
+      ${M.wtoku ? '<p class="opis">' + (edW ? 'Miesiąc w toku — dniówki rosną z raportów dnia. Bonus, dodatek, potrącenie, przelew i gotówkę wpisujesz ołówkiem w wierszu; puste pole = kwota z pliku Z.' : 'Miesiąc w toku — dniówki rosną z raportów dnia; kwoty wpisuje HR.') + '</p>' : ''}</div>
       ${przelMies('miesW', k)}</div>
       <div class="kafle k4">
         <div class="kafel"><span class="etykieta">Podstawa</span><span class="w">${zl(tot.podstawa)}</span><span class="p">${tot.n} ${odm(tot.n, 'osoba', 'osoby', 'osób')}</span></div>
@@ -3484,6 +3487,414 @@ document.addEventListener('submit', e => {
   wyslijWniosek(wn);
 });
 
+/* ═══════════════ team.dysza.app · wydruki PDF (8.11.2026) ═══════════════
+   Dane → PDF (jsPDF 4.2.1, MIT). Czcionki: Inter z cyframi tabelarycznymi (kwoty równo pod sobą)
+   i Bebas Neue do tytułów (OFL). jsPDF i czcionki wczytują się dopiero przy pierwszym wydruku.
+   Plik nie zawiera żadnych danych — dostaje je z aplikacji po zalogowaniu. */
+(function (g) {
+  'use strict';
+  const K = {
+    tekst: '#13201A', tekst2: '#4B5D53', tekst3: '#5F7067', linia: '#DCE4DF', ramka: '#D3DDD7', pow3: '#EEF3F0',
+    weekend: '#F4F7F5', zamk: '#E6ECE8', F: '#3F7357', Ftx: '#FFFFFF', R: '#DE9B66', Rtx: '#2A1608', Rliczba: '#A9622B',
+    alt: '#1E63B5', sm: '#7A4FA0', czerw: '#C62828', ciecie: '#8E9C94', bialy: '#FFFFFF'
+  };
+  const PLIKI = [['InterDruk-Regular.ttf', 'Inter', 'normal'], ['InterDruk-SemiBold.ttf', 'Inter', 'semibold'],
+    ['InterDruk-Bold.ttf', 'Inter', 'bold'], ['BebasNeue-Regular.ttf', 'Bebas', 'normal']];
+  const PT = 25.4 / 72;                        // mm na punkt
+  const NB = ' ';                         // wąska twarda spacja: 6 072 zł
+  const MINUS = '−';
+  let FONTY = null, JS = null;
+
+  /* ── wczytanie jsPDF i czcionek (raz na sesję) ── */
+  function b64(buf) { let s = ''; const u = new Uint8Array(buf); for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); }
+  function skrypt(src) { return new Promise((ok, zle) => { const e = document.createElement('script'); e.src = src; e.onload = ok; e.onerror = () => zle(new Error('Nie wczytałem ' + src)); document.head.appendChild(e); }); }
+  async function laduj(baza) {
+    if (!JS) { if (!(g.jspdf && g.jspdf.jsPDF)) await skrypt(baza + 'jspdf.umd.min.js'); JS = g.jspdf.jsPDF; }
+    if (!FONTY) {
+      const f = {};
+      await Promise.all(PLIKI.map(async ([plik]) => {
+        const r = await fetch(baza + 'fonty/' + plik, { cache: 'force-cache' });
+        if (!r.ok) throw new Error('Nie wczytałem czcionki ' + plik + ' (' + r.status + ')');
+        f[plik] = b64(await r.arrayBuffer());
+      }));
+      FONTY = f;
+    }
+  }
+  function nowy(o, meta) {
+    const doc = new JS(Object.assign({ unit: 'mm', compress: true }, o));
+    PLIKI.forEach(([plik, rod, st]) => { doc.addFileToVFS(plik, FONTY[plik]); doc.addFont(plik, rod, st); });
+    doc.setProperties(Object.assign({ creator: 'team.dysza.app', author: 'Pracownia Sushi' }, meta || {}));
+    doc.setLanguage('pl');
+    doc.setLineJoin('round');
+    return doc;
+  }
+
+  /* ── pomocnicze ── */
+  function ust(doc, o) { doc.setFont(o.r || 'Inter', o.f || 'normal'); doc.setFontSize(o.pt || 8); doc.setTextColor(o.kol || K.tekst); doc.setCharSpace(o.cs || 0); }
+  function szer(doc, s, o) { ust(doc, o); const t = String(s); doc.setCharSpace(0); return doc.getTextWidth(t) + (o.cs || 0) * Math.max(0, t.length - 1); }
+  function tx(doc, s, x, y, o) {                                       // o.w: 'l' | 'r' | 'c'
+    o = o || {}; const t = String(s); if (!t) return 0;
+    const w = szer(doc, t, o), x0 = o.w === 'r' ? x - w : o.w === 'c' ? x - w / 2 : x;
+    ust(doc, o); doc.text(t, x0, y, o.kat ? { angle: o.kat } : undefined); doc.setCharSpace(0);
+    return w;
+  }
+  function dopasuj(doc, s, o, maxW, minPt) {                          // zmniejsz do minPt, potem skróć „…”
+    let pt = o.pt; while (pt > minPt && szer(doc, s, Object.assign({}, o, { pt })) > maxW) pt -= 0.25;
+    const o2 = Object.assign({}, o, { pt }); let t = String(s);
+    if (szer(doc, t, o2) > maxW) { while (t.length > 1 && szer(doc, t + '…', o2) > maxW) t = t.slice(0, -1); t = t.replace(/\s+$/, '') + '…'; }
+    return { t, o: o2 };
+  }
+  function liczba(v) { const n = Math.round(Math.abs(v || 0)); return (v < 0 && n ? MINUS : '') + String(n).replace(/\B(?=(\d{3})+(?!\d))/g, NB); }
+  const kwota = v => liczba(v) + NB + 'zł';
+  const cyr = s => /[Ѐ-ӿ]/.test(s);                          // Bebas nie ma cyrylicy — wtedy Inter
+  function linia(doc, x1, y1, x2, y2, kol, gr, kres) {
+    doc.setDrawColor(kol); doc.setLineWidth(gr);
+    if (kres) doc.setLineDashPattern(kres, 0);
+    doc.line(x1, y1, x2, y2);
+    if (kres) doc.setLineDashPattern([], 0);
+  }
+  function prost(doc, x, y, w, h, kol, r) { doc.setFillColor(kol); if (r) doc.roundedRect(x, y, w, h, r, r, 'F'); else doc.rect(x, y, w, h, 'F'); }
+  function ramka(doc, x, y, w, h, kol, gr, r) { doc.setDrawColor(kol); doc.setLineWidth(gr); doc.roundedRect(x, y, w, h, r, r, 'S'); }
+  const odm = (n, a, b, c) => n === 1 ? a : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? b : c;
+  const odmUA = (n, a, b, c) => (n % 10 === 1 && n % 100 !== 11) ? a : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? b : c;
+
+  /* plakietka zmiany — jak w aplikacji: F zieleń, R pomarańcz; kropka = inna rola (prawy róg), kwadracik = dyżur Social Media (lewy róg) */
+  function plakietka(doc, x, y, w, h, c, o) {
+    prost(doc, x, y, w, h, K[c], Math.min(0.75, h / 3));
+    tx(doc, c, x + w / 2, y + h / 2 + o.pt * PT * 0.36, { f: 'bold', pt: o.pt, kol: K[c + 'tx'], w: 'c' });
+    const r = Math.max(0.42, Math.min(0.62, h / 4.6));
+    if (o.alt) { doc.setFillColor(K.bialy); doc.circle(x + w - r - 0.55, y + h / 2, r + 0.28, 'F'); doc.setFillColor(K.alt); doc.circle(x + w - r - 0.55, y + h / 2, r, 'F'); }
+    if (o.sm) { const a = r * 1.75; prost(doc, x + 0.55 - 0.28, y + h / 2 - a / 2 - 0.28, a + 0.56, a + 0.56, K.bialy, 0.3); prost(doc, x + 0.55, y + h / 2 - a / 2, a, a, K.sm, 0.18); }
+  }
+
+  /* ═════════ 1. Grafik opublikowany — A3 poziomo ═════════ */
+  function grafik(d) {
+    const doc = nowy({ orientation: 'landscape', format: 'a3' }, { title: `Harmonogram · ${d.miesiac}`, subject: 'Grafik zespołu — wersja opublikowana' });
+    const W = 420, H = 297, M = 12, N = d.dni;
+    // nagłówek
+    tx(doc, 'HARMONOGRAM · PRACOWNIA SUSHI', M, 16, { f: 'semibold', pt: 8, kol: K.tekst3, cs: 0.35 });
+    tx(doc, d.miesiac.toUpperCase(), M - 0.4, 31.5, { r: 'Bebas', pt: 44 });
+    tx(doc, `Opublikowany ${d.opublikowany} · wariant ${d.wariant} · ${d.osob} ${odm(d.osob, 'osoba', 'osoby', 'osób')}`, W - M, 16, { pt: 9, kol: K.tekst2, w: 'r' });
+    // legenda — jedna linia, wyrównana do prawej
+    const lb = 7, lh = 3.5, ly = 27.6, lpt = 6.6;
+    const leg = [[(x, y) => plakietka(doc, x, y, lb, lh, 'F', { pt: lpt }), 'Fabryka'], [(x, y) => plakietka(doc, x, y, lb, lh, 'R', { pt: lpt }), 'Restauracja']];
+    if (d.zAlt) leg.push([(x, y) => plakietka(doc, x, y, lb, lh, 'F', { pt: lpt, alt: 1 }), 'w innej roli']);
+    if (d.zSM) leg.push([(x, y) => plakietka(doc, x, y, lb, lh, 'F', { pt: lpt, sm: 1 }), 'dyżur Social Media']);
+    if (d.zamk.length) leg.push([(x, y) => prost(doc, x, y, lb, lh, K.zamk, 0.6), 'zamknięte']);
+    const lo = { pt: 8, kol: K.tekst2 }, odst = 6;
+    const lw = leg.reduce((a, [, t]) => a + lb + 1.8 + szer(doc, t, lo), 0) + odst * (leg.length - 1);
+    let lx = W - M - lw;
+    leg.forEach(([rys, t]) => { rys(lx, ly); lx += lb + 1.8; lx += tx(doc, t, lx, ly + lh / 2 + 8 * PT * 0.36, lo) + odst; });
+
+    // siatka
+    const nazW = 52, sumW = 12, dW = (W - 2 * M - nazW - sumW) / N;
+    const g0 = 38, hH = 8.6;
+    const wierszy = d.grupy.reduce((a, gr) => a + 1 + gr.osoby.length, 0) + 2;
+    const h = Math.min(5.2, (H - 16 - (g0 + hH)) / wierszy);
+    const yKon = g0 + hH + wierszy * h;
+    const xd = i => M + nazW + i * dW;
+    const pt = Math.max(5.2, Math.min(7.6, h * 1.78)), bh = h - 0.7, bw = dW - 1.1;
+    const kap = pt * PT * 0.36;
+    // tło: weekendy i dni zamknięte
+    for (let i = 0; i < N; i++) {
+      const wd = (d.wd0 + i) % 7;
+      if (d.zamk.includes(i + 1)) prost(doc, xd(i), g0, dW, yKon - g0, K.zamk);
+      else if (wd >= 5) prost(doc, xd(i), g0, dW, yKon - g0, K.weekend);
+    }
+    // nagłówek dni
+    const WDN = ['PN', 'WT', 'ŚR', 'CZ', 'PT', 'SB', 'ND'];
+    tx(doc, 'OSOBA', M + 1.2, g0 + 5.6, { f: 'semibold', pt: 6.5, kol: K.tekst3, cs: 0.3 });
+    tx(doc, 'ZMIAN', W - M - 1, g0 + 5.6, { f: 'semibold', pt: 6.5, kol: K.tekst3, cs: 0.3, w: 'r' });
+    for (let i = 0; i < N; i++) {
+      const cx = xd(i) + dW / 2, wd = (d.wd0 + i) % 7;
+      tx(doc, String(i + 1), cx, g0 + 4.3, { f: 'semibold', pt: 8.5, kol: wd >= 5 ? K.tekst2 : K.tekst, w: 'c' });
+      tx(doc, WDN[wd], cx, g0 + 7.4, { pt: 5.6, kol: K.tekst3, w: 'c', cs: 0.15 });
+    }
+    linia(doc, M, g0 + hH, W - M, g0 + hH, K.tekst, 0.3);
+    // wiersze
+    let y = g0 + hH;
+    const sumy = { F: Array(N).fill(0), R: Array(N).fill(0) };
+    d.grupy.forEach(gr => {
+      prost(doc, M, y, W - 2 * M, h, K.pow3);
+      const gw = tx(doc, gr.nazwa, M + 1.2, y + h / 2 + kap, { f: 'semibold', pt, kol: K.tekst });
+      tx(doc, ` · ${gr.osoby.length}`, M + 1.2 + gw, y + h / 2 + kap, { pt, kol: K.tekst3 });
+      y += h;
+      gr.osoby.forEach(o => {
+        const by = y + h / 2 + kap;
+        const im = dopasuj(doc, o.imie + ' ' + o.nazwisko, { f: 'semibold', pt }, nazW - 3, pt - 1.2);
+        // imię półgrube, nazwisko zwykłe — w jednej linii
+        const sp = im.t.indexOf(' ');
+        if (sp > 0 && im.t.slice(0, sp) === o.imie) { const wi = tx(doc, o.imie + ' ', M + 1.2, by, im.o); tx(doc, im.t.slice(sp + 1), M + 1.2 + wi, by, Object.assign({}, im.o, { f: 'normal' })); }
+        else tx(doc, im.t, M + 1.2, by, im.o);
+        let n = 0;
+        for (let i = 0; i < N; i++) {
+          const c = o.plan[i];
+          if (c !== 'F' && c !== 'R') continue;
+          n++; sumy[c][i]++;
+          plakietka(doc, xd(i) + (dW - bw) / 2, y + (h - bh) / 2, bw, bh, c, { pt: pt - 0.3, alt: o.alt && o.alt[i], sm: o.sm && o.sm.includes(i) });
+        }
+        tx(doc, String(n), W - M - 1, by, { f: 'semibold', pt, w: 'r' });
+        linia(doc, M, y + h, W - M, y + h, K.linia, 0.12);
+        y += h;
+      });
+    });
+    // obsada dnia
+    linia(doc, M, y, W - M, y, K.tekst, 0.3);
+    [['F', 'Fabryka · osób'], ['R', 'Restauracja · osób']].forEach(([c, opis]) => {
+      const by = y + h / 2 + kap;
+      tx(doc, opis, M + 1.2, by, { f: 'semibold', pt, kol: K.tekst2 });
+      for (let i = 0; i < N; i++) if (sumy[c][i]) tx(doc, String(sumy[c][i]), xd(i) + dW / 2, by, { f: 'semibold', pt, kol: c === 'F' ? K.F : K.Rliczba, w: 'c' });
+      tx(doc, String(sumy[c].reduce((a, b) => a + b, 0)), W - M - 1, by, { f: 'semibold', pt, kol: K.tekst2, w: 'r' });
+      y += h;
+    });
+    // dni zamknięte — jednolity pas od nagłówka do dołu (przykrywa pasy grup i linie), jeden podpis na blok
+    const bloki = []; d.zamk.slice().sort((a, b) => a - b).forEach(dz => { const b = bloki[bloki.length - 1]; if (b && b[1] === dz - 1) b[1] = dz; else bloki.push([dz, dz]); });
+    bloki.forEach(([a, b]) => {
+      const x0 = xd(a - 1), x1 = xd(b), cx = (x0 + x1) / 2, cy = g0 + hH + (yKon - g0 - hH) / 2;
+      prost(doc, x0, g0 + hH + 0.15, x1 - x0, yKon - g0 - hH - 0.15, K.zamk);
+      const t1 = 'ZAMKNIĘTE', t2 = a === b ? `${a}.${d.mies2}` : `${a}–${b}.${d.mies2}`;
+      if (x1 - x0 >= 22) {
+        tx(doc, t1, cx, cy - 0.6, { f: 'semibold', pt: 7.5, kol: K.tekst2, cs: 0.6, w: 'c' });
+        tx(doc, t2, cx, cy + 3.4, { pt: 7, kol: K.tekst3, w: 'c' });
+      } else {
+        const w = szer(doc, t1, { f: 'semibold', pt: 7, cs: 0.6 });
+        tx(doc, t1, cx + 7 * PT * 0.36, cy + w / 2, { f: 'semibold', pt: 7, kol: K.tekst2, cs: 0.6, kat: 90 });
+      }
+    });
+    // linie tygodni (po niedzieli)
+    for (let i = 0; i < N - 1; i++) if ((d.wd0 + i) % 7 === 6) linia(doc, xd(i + 1), g0, xd(i + 1), yKon, K.ramka, 0.3);
+    // stopka
+    tx(doc, 'team.dysza.app · zmiany w grafiku tylko przez HR', M, H - 7, { pt: 7, kol: K.tekst3 });
+    tx(doc, `Wydrukowano ${d.teraz}${d.kto ? ' · ' + d.kto : ''}`, W - M, H - 7, { pt: 7, kol: K.tekst3, w: 'r' });
+    return doc;
+  }
+
+  /* ═════════ 2. Wypłaty — zestawienie zbiorcze, A4 pionowo (tylko HR) ═════════ */
+  const KOLUMNY = {
+    dni: ['DNI', 7.5], godz: ['GODZ.', 10], podstawa: ['PODSTAWA', 15], bonus: ['BONUS', 12.5], dodatek: ['DODATEK', 13.5], potracenie: ['POTRĄCENIE', 16],
+    rt: ['RATA', 11], przen: ['MINUS', 11.5], wyplacic: ['WYPŁACIĆ', 14.5], naKonto: ['NA KONTO', 14.5], gotowka: ['GOTÓWKĄ', 14], pozostaje: ['POZOSTAJE', 15.5], koperta: ['W KOPERCIE', 16.5]
+  };
+  function zbiorczy(d) {
+    const doc = nowy({ orientation: 'portrait', format: 'a4' }, { title: `Wypłaty · ${d.miesiac} · zestawienie zbiorcze`, subject: 'Poufne — tylko dla HR' });
+    const W = 210, H = 297, M = 12, DOL = H - 18;
+    const kol = ['dni', 'godz', 'podstawa', 'bonus', 'dodatek', 'potracenie', ...(d.zRat ? ['rt'] : []), ...(d.zPrz ? ['przen'] : []), 'wyplacic', 'naKonto', 'gotowka', 'pozostaje', 'koperta'];
+    const skala = Math.min(1, (W - 2 * M - 34) / kol.reduce((a, k) => a + KOLUMNY[k][1], 0));
+    const kw = kol.map(k => KOLUMNY[k][1] * skala), nazW = W - 2 * M - kw.reduce((a, b) => a + b, 0);
+    const pt = skala < 0.985 ? 6.7 : 7.2, kap = pt * PT * 0.36;
+    const gl = { pt: skala < 0.985 ? 5.1 : 5.5, cs: 0.1 };              // nagłówki kolumn: zawsze z odstępem od sąsiada
+    const naglowek = ciag => {
+      tx(doc, 'WYPŁATY · ZESTAWIENIE ZBIORCZE', M, 16, { f: 'semibold', pt: 7.5, kol: K.tekst3, cs: 0.35 });
+      tx(doc, 'POUFNE · TYLKO DLA HR', W - M, 16, { f: 'bold', pt: 7.5, kol: K.czerw, cs: 0.35, w: 'r' });
+      if (ciag) { tx(doc, d.miesiac.toUpperCase() + ' · CIĄG DALSZY', M - 0.2, 25, { r: 'Bebas', pt: 18 }); return 30; }
+      tx(doc, d.miesiac.toUpperCase(), M - 0.3, 30.5, { r: 'Bebas', pt: 36 });
+      tx(doc, d.podtytul, M, 36.6, { pt: 8, kol: d.wtoku ? K.czerw : K.tekst2 });
+      return 41;
+    };
+    const glowka = y => {
+      tx(doc, 'OSOBA', M + 1, y + 4.6, { f: 'semibold', pt: gl.pt, kol: K.tekst3, cs: gl.cs });
+      let x = M + nazW;
+      kol.forEach((k, j) => { x += kw[j]; tx(doc, KOLUMNY[k][0], x - 1, y + 4.6, { f: k === 'koperta' ? 'bold' : 'semibold', pt: gl.pt, kol: k === 'koperta' ? K.tekst : K.tekst3, cs: gl.cs, w: 'r' }); });
+      linia(doc, M, y + 6.6, W - M, y + 6.6, K.tekst, 0.3);
+      return y + 6.6;
+    };
+    const nowaStrona = () => { doc.addPage('a4', 'portrait'); y = glowka(naglowek(true)); };
+    let y = naglowek(false);
+    // kafle
+    const gap = 4, kwid = (W - 2 * M - 3 * gap) / 4;
+    d.kafle.forEach((k, i) => {
+      const x = M + i * (kwid + gap);
+      ramka(doc, x, y, kwid, 19.5, k.mocny ? K.tekst : K.ramka, k.mocny ? 0.4 : 0.25, 2);
+      tx(doc, k.e, x + 3.5, y + 5.6, { f: 'semibold', pt: 6, kol: K.tekst3, cs: 0.3 });
+      tx(doc, k.w, x + 3.5, y + 12.6, { f: 'bold', pt: 13.5 });
+      const p = dopasuj(doc, k.p, { pt: 6.5, kol: K.tekst2 }, kwid - 7, 5.6); tx(doc, p.t, x + 3.5, y + 16.8, p.o);
+    });
+    y += 26;
+    y = glowka(y);
+    const HW = { osoba: 4.75, grupa: 5.3, razem: 6.4 };
+    const wiersz = (r, typ) => {
+      const hh = HW[typ];
+      if (y + hh > DOL) nowaStrona();
+      if (typ === 'grupa') prost(doc, M, y, W - 2 * M, hh, K.pow3);
+      const f = typ === 'osoba' ? 'normal' : typ === 'grupa' ? 'semibold' : 'bold', by = y + hh / 2 + kap;
+      if (typ === 'osoba') {
+        const im = dopasuj(doc, r.imie + ' ' + r.nazwisko, { f: 'semibold', pt }, nazW - 3, pt - 1);
+        const sp = im.t.indexOf(' ');
+        if (sp > 0 && im.t.slice(0, sp) === r.imie) { const wi = tx(doc, r.imie + ' ', M + 1, by, im.o); tx(doc, im.t.slice(sp + 1), M + 1 + wi, by, Object.assign({}, im.o, { f: 'normal' })); }
+        else tx(doc, im.t, M + 1, by, im.o);
+      } else tx(doc, r.nazwa, M + 1, by, { f, pt, kol: K.tekst });
+      let x = M + nazW;
+      kol.forEach((k, j) => {
+        x += kw[j];
+        if ((k === 'dni' || k === 'godz') && typ !== 'osoba') return;
+        let v = r[k]; if (k === 'rt' && v) v = -v;
+        const zero = !Math.round(v || 0);
+        tx(doc, zero ? '—' : liczba(v), x - 1, by, { f: k === 'koperta' ? (typ === 'osoba' ? 'semibold' : 'bold') : f, pt, kol: zero ? K.tekst3 : v < 0 ? K.czerw : K.tekst, w: 'r' });
+      });
+      if (typ === 'osoba') linia(doc, M, y + hh, W - M, y + hh, K.linia, 0.12);
+      y += hh;
+    };
+    d.grupy.forEach(gr => {
+      if (y + HW.grupa + HW.osoba > DOL) nowaStrona();                 // nagłówek grupy nie zostaje sam na dole strony
+      wiersz(Object.assign({ nazwa: `${gr.nazwa} · ${gr.wiersze.length}` }, gr.suma), 'grupa');
+      gr.wiersze.forEach(r => wiersz(r, 'osoba'));
+    });
+    if (y + HW.razem + 1 > DOL) nowaStrona();
+    linia(doc, M, y, W - M, y, K.tekst, 0.45);
+    wiersz(Object.assign({ nazwa: 'Razem' }, d.razem), 'razem');
+    const n = doc.getNumberOfPages();
+    for (let s = 1; s <= n; s++) {
+      doc.setPage(s);
+      linia(doc, M, H - 12.5, W - M, H - 12.5, K.linia, 0.2);
+      tx(doc, `Poufne · tylko dla HR · wydrukowano ${d.teraz}${d.kto ? ' · ' + d.kto : ''}`, M, H - 8, { pt: 6.8, kol: K.tekst3 });
+      tx(doc, `strona ${s} z ${n}`, W - M, H - 8, { pt: 6.8, kol: K.tekst3, w: 'r' });
+    }
+    return doc;
+  }
+
+  /* ═════════ 3. Wydruk załogi — 4 osoby na A4 (do kopert), linie cięcia ═════════ */
+  const TL = {   // te same słowa co w widoku „Zarobki” pracownika
+    pl: { firma: 'PRACOWNIA SUSHI · WYPŁATA', podstawa: 'Podstawa (suma dniówek)', bonus: 'Bonus', dodatek: 'Dodatek', potracenie: 'Potrącenie', rata: 'Rata pożyczki',
+      przen: 'Minus z poprzedniego miesiąca', dowyp: 'Do wypłaty', nakonto: 'Na konto', wtym: 'w tym zaliczki', koperta: 'W KOPERCIE', godz: 'godz.', wtoku: 'W TOKU · STAN NA',
+      dni: n => `${n} ${odm(n, 'dzień', 'dni', 'dni')}`, calosc: 'Całość na konto.', minus: k => `Minus ${k} przechodzi na następny miesiąc.`, stopka: 'Dzień po dniu: team.dysza.app → Zarobki' },
+    ua: { firma: 'PRACOWNIA SUSHI · ВИПЛАТА', podstawa: 'Основа (сума денних ставок)', bonus: 'Бонус', dodatek: 'Доплата', potracenie: 'Утримання', rata: 'Внесок за позику',
+      przen: 'Мінус з попереднього місяця', dowyp: 'До виплати', nakonto: 'На рахунок', wtym: 'у т. ч. аванси', koperta: 'У КОНВЕРТІ', godz: 'год', wtoku: 'ТРИВАЄ · СТАН НА',
+      dni: n => `${n} ${odmUA(n, 'день', 'дні', 'днів')}`, calosc: 'Уся сума — на рахунок.', minus: k => `Мінус ${k} переходить на наступний місяць.`, stopka: 'По днях: team.dysza.app → Заробіток' }
+  };
+  function nozyczki(doc, cx, cy, kat) {                                // nożyczki na linii cięcia (rysunek wektorowy)
+    const a = kat * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+    const P = (x, y) => [cx + x * c - y * s, cy + x * s + y * c];
+    const pion = Math.abs(s) > 0.5;
+    prost(doc, cx - (pion ? 2.6 : 4.2), cy - (pion ? 4.2 : 2.6), pion ? 5.2 : 8.4, pion ? 8.4 : 5.2, K.bialy);
+    doc.setDrawColor(K.tekst2); doc.setFillColor(K.tekst2); doc.setLineWidth(0.3);
+    [-1, 1].forEach(u => {
+      const rx = -2.3, ry = 0.95 * u, rr = 0.82;                       // pierścień
+      const dl = Math.hypot(rx, ry), dx = -rx / dl, dy = -ry / dl;     // kierunek od pierścienia przez oś
+      const sx = rx + dx * rr, sy = ry + dy * rr, t = (3.1 - sx) / dx, tx2 = sx + dx * t, ty2 = sy + dy * t;
+      const nx = -dy * 0.3, ny = dx * 0.3;
+      const [ax, ay] = P(sx + nx, sy + ny), [bx, by] = P(sx - nx, sy - ny), [kx, ky] = P(tx2, ty2);
+      doc.triangle(ax, ay, bx, by, kx, ky, 'F');                       // ostrze
+      const [hx, hy] = P(rx, ry); doc.circle(hx, hy, rr, 'S');
+    });
+    const [ox, oy] = P(0, 0); doc.setFillColor(K.bialy); doc.circle(ox, oy, 0.22, 'F');
+  }
+  function zaloga(d) {
+    const doc = nowy({ orientation: 'portrait', format: 'a4' }, { title: `Wypłaty · ${d.miesiac.pl} · dla załogi`, subject: 'Do kopert — jedna osoba na ćwiartce A4' });
+    const SW = 105, SH = 148.5, P = 9;
+    const kartka = (o, x0, y0) => {
+      const ua = o.jezyk === 'ua', L = TL[ua ? 'ua' : 'pl'], xl = x0 + P, xp = x0 + SW - P, sz = SW - 2 * P;
+      // nagłówek: ta sama linia i krój na każdej kartce (PL i UA)
+      tx(doc, L.firma, xl, y0 + P + 3, { f: 'semibold', pt: 6.2, kol: K.tekst3, cs: 0.35 });
+      tx(doc, (ua ? d.miesiac.ua : d.miesiac.pl).toUpperCase(), xp, y0 + P + 3, { f: 'bold', pt: 7.4, cs: 0.35, w: 'r' });
+      if (d.wtoku) tx(doc, `${L.wtoku} ${d.stan}`, xp, y0 + P + 7.4, { f: 'bold', pt: 6, kol: K.czerw, cs: 0.3, w: 'r' });
+      const imie = `${o.imie} ${o.nazwisko}`;
+      if (cyr(imie)) { const f = dopasuj(doc, imie, { f: 'bold', pt: 17 }, sz, 11); tx(doc, f.t, xl, y0 + P + 18, f.o); }
+      else { const f = dopasuj(doc, imie.toUpperCase(), { r: 'Bebas', pt: 31 }, sz, 18); tx(doc, f.t, xl - 0.2, y0 + P + 18.6, f.o); }
+      tx(doc, `${o.rola} · ${L.dni(o.dni)} · ${liczba(o.godz)} ${L.godz}`, xl, y0 + P + 25.2, { pt: 8.8, kol: K.tekst2 });
+      let y = y0 + P + 30.5;
+      linia(doc, xl, y, xp, y, K.ramka, 0.25);
+      y += 7.4;
+      const poz = (opis, v, o2) => {
+        o2 = o2 || {};
+        const zero = !Math.round(v || 0), wart = zero ? '—' : kwota(o2.minus ? -Math.abs(v) : v);
+        const ww = szer(doc, wart, { f: o2.f || 'semibold', pt: o2.pt || 9.4 });
+        const op = dopasuj(doc, opis, { f: o2.f || 'normal', pt: o2.pt || 9.1, kol: o2.f ? K.tekst : K.tekst2 }, sz - ww - 4, 6.8);
+        tx(doc, op.t, xl, y, op.o);
+        tx(doc, wart, xp, y, { f: o2.f || 'semibold', pt: o2.pt || 9.4, kol: zero ? K.tekst3 : (o2.minus || v < 0) ? K.czerw : K.tekst, w: 'r' });
+        y += o2.krok || 6.9;
+      };
+      poz(L.podstawa, o.podstawa);
+      poz(L.bonus, o.bonus);
+      poz(L.dodatek, o.dodatek);
+      poz(L.potracenie, o.potracenie, { minus: true });
+      if (o.rt) poz(L.rata, o.rt, { minus: true });
+      if (o.przen) poz(L.przen, o.przen, { minus: true });
+      y -= 2.6; linia(doc, xl, y, xp, y, K.ramka, 0.25); y += 7.2;
+      poz(L.dowyp, o.wyplacic, { f: 'bold', pt: 10, krok: 7.2 });
+      poz(o.zal ? `${L.nakonto} (${L.wtym} ${kwota(o.zal)})` : L.nakonto, o.naKonto, { minus: true });
+      // koperta
+      y += 0.6;
+      const kh = 20;
+      doc.setFillColor(K.pow3); doc.setDrawColor(K.tekst); doc.setLineWidth(0.45); doc.roundedRect(xl, y, sz, kh, 2.4, 2.4, 'FD');
+      tx(doc, L.koperta, xl + 4.5, y + kh / 2 + 1.2, { f: 'bold', pt: 7.8, cs: 0.5 });
+      tx(doc, kwota(o.koperta), xp - 4.5, y + kh / 2 + 2.6, { f: 'bold', pt: 21, w: 'r' });
+      y += kh + 6.2;
+      const nota = o.pozostaje < 0 ? L.minus(kwota(Math.abs(o.pozostaje))) : !o.koperta && o.wyplacic > 0 ? L.calosc : '';
+      if (nota) { const f = dopasuj(doc, nota, { pt: 8.2, kol: o.pozostaje < 0 ? K.czerw : K.tekst2 }, sz, 6.4); tx(doc, f.t, xl, y, f.o); }
+      tx(doc, L.stopka, xl, y0 + SH - P + 1.5, { pt: 6.6, kol: K.tekst3 });
+    };
+    const strony = Math.max(1, Math.ceil(d.osoby.length / 4));
+    for (let s = 0; s < strony; s++) {
+      if (s) doc.addPage('a4', 'portrait');
+      d.osoby.slice(s * 4, s * 4 + 4).forEach((o, i) => kartka(o, (i % 2) * SW, Math.floor(i / 2) * SH));
+      linia(doc, SW, 0, SW, 297, K.ciecie, 0.22, [2.2, 1.6]);
+      linia(doc, 0, SH, 210, SH, K.ciecie, 0.22, [2.2, 1.6]);
+      nozyczki(doc, SW, 11, 90);
+      nozyczki(doc, 11, SH, 0);
+    }
+    return doc;
+  }
+
+  /* ═════════ dane z aplikacji → wydruk ═════════ */
+  const sortNazw = (a, b) => a.nazwisko.localeCompare(b.nazwisko, 'pl') || a.imie.localeCompare(b.imie, 'pl');
+  // a: { publ, osoba(id) → {imie,nazwisko,rola}, ROLE, ROLE_N, rok, mies (1–12), miesiac: 'Grudzień 2026', opublikowany, teraz, kto }
+  function zGrafiku(a) {
+    const ids = Object.keys(a.publ.plany).filter(id => a.osoba(id));
+    const N = Math.max(...ids.map(id => a.publ.plany[id].length));
+    const zamk = []; for (let i = 0; i < N; i++) if (ids.some(id => a.publ.plany[id][i] === '#')) zamk.push(i + 1);
+    const role = a.ROLE.concat([...new Set(ids.map(id => a.osoba(id).rola))].filter(r => !a.ROLE.includes(r)));
+    const grupy = role.map(rola => ({
+      nazwa: a.ROLE_N[rola] || rola,
+      osoby: ids.filter(id => a.osoba(id).rola === rola).map(id => {
+        const p = a.osoba(id);
+        return { imie: p.imie, nazwisko: p.nazwisko, plan: a.publ.plany[id], sm: (a.publ.sm || {})[id] || [], alt: (a.publ.alt || {})[id] || null };
+      }).sort(sortNazw)
+    })).filter(gr => gr.osoby.length);
+    const wd0 = (new Date(Date.UTC(a.rok, a.mies - 1, 1)).getUTCDay() + 6) % 7;
+    return {
+      miesiac: a.miesiac, mies2: String(a.mies), dni: N, wd0, zamk, grupy, osob: ids.length,
+      zSM: grupy.some(gr => gr.osoby.some(o => o.sm.length)), zAlt: grupy.some(gr => gr.osoby.some(o => o.alt && Object.keys(o.alt).length)),
+      opublikowany: a.opublikowany, wariant: a.publ.wersja, teraz: a.teraz, kto: a.kto
+    };
+  }
+  // a: { osoby: [{id,imie,nazwisko,rola,d}], rozl(id), jezyk(id), ROLE, ROLE_N, ROLA_1, ROLA_UA, miesiac:{pl,ua}, wtoku, stan, teraz, kto }
+  function zWyplat(a) {
+    const POLA = ['podstawa', 'bonus', 'dodatek', 'potracenie', 'rt', 'przen', 'wyplacic', 'naKonto', 'gotowka', 'pozostaje', 'koperta'];
+    const wiersze = a.osoby.map(p => {
+      const r = a.rozl(p.id); if (!r) return null;
+      const d = p.d || [], dni = d.filter(Boolean).length, godz = d.reduce((t, c) => t + (c ? c[1] || 0 : 0), 0);
+      return Object.assign({ id: p.id, imie: p.imie, nazwisko: p.nazwisko, rola: p.rola, dni, godz, zal: r.zal || 0, koperta: (r.gotowka || 0) + Math.max(0, r.pozostaje || 0) },
+        ...POLA.filter(k => k !== 'koperta').map(k => ({ [k]: r[k] || 0 })));
+    }).filter(Boolean);
+    const suma = ws => { const s = {}; POLA.forEach(k => { s[k] = ws.reduce((t, w) => t + w[k], 0); }); s.dni = ws.reduce((t, w) => t + w.dni, 0); s.zal = ws.reduce((t, w) => t + w.zal, 0); return s; };
+    const role = a.ROLE.concat([...new Set(wiersze.map(w => w.rola))].filter(r => !a.ROLE.includes(r)));
+    const grupy = role.map(rola => { const ws = wiersze.filter(w => w.rola === rola).sort(sortNazw); return { nazwa: a.ROLE_N[rola] || rola, wiersze: ws, suma: suma(ws) }; }).filter(gr => gr.wiersze.length);
+    const razem = suma(wiersze), n = wiersze.length;
+    const nKop = wiersze.filter(w => Math.round(w.koperta) > 0).length;
+    const doKopert = wiersze.filter(w => POLA.some(k => Math.round(w[k] || 0)));
+    const nPrz = wiersze.filter(w => Math.round(w.naKonto - w.zal) > 0).length, nPuste = doKopert.length - nKop;
+    const kafle = [
+      { e: 'PODSTAWA', w: kwota(razem.podstawa), p: `${n} ${odm(n, 'osoba', 'osoby', 'osób')} · ${liczba(razem.dni)} ${odm(razem.dni, 'dzień', 'dni', 'dni')} pracy` },
+      { e: 'WYPŁACIĆ', w: kwota(razem.wyplacic), p: `dodatki ${liczba(razem.bonus + razem.dodatek)} · potrącenia ${liczba(razem.potracenie + razem.rt)}` },
+      { e: 'NA KONTO', w: kwota(razem.naKonto), p: `${nPrz} ${odm(nPrz, 'przelew', 'przelewy', 'przelewów')}${razem.zal ? ` · zaliczki ${kwota(razem.zal)}` : ''}` },
+      { e: 'W KOPERTACH', w: kwota(razem.koperta), p: `${nKop} z gotówką · ${nPuste} ${odm(nPuste, 'pusta', 'puste', 'pustych')}`, mocny: true }
+    ];
+    const zbiorczy = {
+      miesiac: a.miesiac.pl, wtoku: a.wtoku, podtytul: a.wtoku ? `Miesiąc w toku · stan na ${a.stan} · kwoty jeszcze rosną` : `Miesiąc zamknięty · ${n} ${odm(n, 'osoba', 'osoby', 'osób')} · W kopercie = Gotówką + dodatnie Pozostaje`,
+      kafle, grupy, razem, zRat: wiersze.some(w => w.rt), zPrz: wiersze.some(w => w.przen), teraz: a.teraz, kto: a.kto
+    };
+    const zaloga = {
+      miesiac: a.miesiac, wtoku: a.wtoku, stan: a.stan,
+      osoby: doKopert.slice().sort(sortNazw).map(w => {
+        const jezyk = a.jezyk(w.id) === 'ua' ? 'ua' : 'pl';
+        return Object.assign({}, w, { jezyk, rola: (jezyk === 'ua' ? a.ROLA_UA[w.rola] : a.ROLA_1[w.rola]) || w.rola });
+      })
+    };
+    return { zbiorczy, zaloga };
+  }
+
+  g.Druk = { laduj, grafik, zbiorczy, zaloga, zGrafiku, zWyplat, kwota, liczba };
+})(window);
+
 /* ═══════════════ team.dysza.app · produkcja v1.0 (8.11.2026) ═══════════════
    W kodzie strony nie ma żadnych danych. Po zalogowaniu (login + PIN jak w managerze)
    dane przychodzą z funkcji bazy team_*, które same pilnują ról: HR i Architekt — całość,
@@ -3804,6 +4215,54 @@ Object.assign(A, {
     S.kw = null;
     poZmianie(`${pelne(P[q.id])}: kwoty jak w pliku Z.`);
   },
+});
+
+/* ───────── wydruki PDF: grafik opublikowany (A3), wypłaty zbiorczo (A4, tylko HR) i dla załogi (4 kartki na A4) ─────────
+   jsPDF i czcionki są w /druk/ i wczytują się dopiero przy pierwszym wydruku. Wydruk powstaje w przeglądarce — dane nie wychodzą poza aplikację. */
+const IK_DRUK = SVG('<path d="M7 9V3.5h10V9"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v6.5H7z"/>', 17);
+const DRUK_BAZA = 'druk/';
+let DRUK_ZAJETY = false;
+const czasPl = d => new Intl.DateTimeFormat('pl-PL', { timeZone: 'Europe/Warsaw', day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(d);
+const przyciskiWyplat = () => mozeHR() ? `<div class="druk-p"><button class="btn" data-a="drukZbiorczy" data-test="druk-zbiorczy">${IK_DRUK}<span>Wydruk zbiorczy</span></button><button class="btn" data-a="drukZaloga" data-test="druk-zaloga">${IK_DRUK}<span>Wydruk załogi</span></button></div>` : '';
+async function drukuj(el, nazwa, zrob) {
+  if (DRUK_ZAJETY || !mozeHR()) return;
+  DRUK_ZAJETY = true;
+  const btn = el && el.closest ? el.closest('button') : null, napis = btn && btn.querySelector('span');
+  const stary = napis ? napis.textContent : '';
+  if (btn) btn.disabled = true;
+  if (napis) napis.textContent = 'Przygotowuję…';
+  try {
+    await Druk.laduj(DRUK_BAZA);
+    zrob().save(nazwa);
+    toast('ok', `Gotowe: <b>${esc(nazwa)}</b> — plik jest w pobranych.`);
+  } catch (e) {
+    toast('czyta', esc(`Nie przygotowałem wydruku: ${tekstBledu(e)} Spróbuj jeszcze raz.`));
+  } finally {
+    DRUK_ZAJETY = false;
+    if (btn && btn.isConnected) { btn.disabled = false; if (napis) napis.textContent = stary; }
+  }
+}
+function drukWyplat(el, co) {
+  const k = S.miesW, M = mies(k); if (!M) return;
+  const osoby = DATA.people.filter(p => p.m[k] && p.m[k].s).map(p => ({ id: p.id, imie: p.im, nazwisko: p.sur, rola: p.rola, d: p.m[k].d }));
+  const teraz = new Date(), mUA = (TXT.ua.mies || {})[k] || M.n;
+  const nazwa = `Wypłaty ${M.n.toLowerCase()} ${M.y} – ${co === 'zbiorczy' ? 'zbiorczy (poufne)' : 'dla załogi'}.pdf`;
+  drukuj(el, nazwa, () => {
+    const w = Druk.zWyplat({ osoby, rozl: id => rozliczenie(id, k), jezyk: id => (S.zal[id] || {}).jezyk || (P[id] || {}).jezyk || 'pl', ROLE, ROLE_N, ROLA_1, ROLA_UA,
+      miesiac: { pl: `${M.n} ${M.y}`, ua: `${mUA} ${M.y}` }, wtoku: !!M.wtoku, stan: `${teraz.getDate()}.${teraz.getMonth() + 1}`, teraz: czasPl(teraz), kto: loginJa() });
+    return co === 'zbiorczy' ? Druk.zbiorczy(w.zbiorczy) : Druk.zaloga(w.zaloga);
+  });
+}
+Object.assign(A, {
+  drukGrafik: el => {
+    const p = S.publ; if (!p || !p.plany) return;
+    drukuj(el, `Harmonogram grudzień 2026 (wariant ${p.wersja}).pdf`, () => Druk.grafik(Druk.zGrafiku({
+      publ: p, osoba: id => (P[id] ? { imie: P[id].im, nazwisko: P[id].sur, rola: P[id].rola } : null), ROLE, ROLE_N,
+      rok: 2026, mies: 12, miesiac: 'Grudzień 2026', opublikowany: czasPl(new Date(p.kiedy)), teraz: czasPl(new Date()), kto: loginJa()
+    })));
+  },
+  drukZbiorczy: el => drukWyplat(el, 'zbiorczy'),
+  drukZaloga: el => drukWyplat(el, 'zaloga')
 });
 
 /* ───────── dane z bazy ───────── */
