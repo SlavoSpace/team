@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>Zespół</title>
-<meta name="team-wersja" content="1.0.2 · 2026-11-08">
+<meta name="team-wersja" content="1.1 · 2026-11-08">
 <meta name="robots" content="noindex, nofollow">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="favicon.png">
@@ -339,6 +339,11 @@ table.tab{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
 .kz-tel{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px;border:1px solid var(--ramka2);border-radius:999px;background:var(--pow2);color:var(--tekst);font:600 15px/1 var(--f-mono);text-decoration:none;white-space:nowrap}
 .kz-tel:hover{border-color:var(--akcja);color:var(--akcja)}
 .kz-tel.brak{border-style:dashed;background:none;color:var(--tekst3);font:500 13px/1 var(--f-tresc)}
+.sia td.kor .k,.legenda .k.kor{box-shadow:0 0 0 2px var(--moc)}
+.sia td[data-a="obKor"]{cursor:pointer}
+.tab.wyp th.ed,.tab.wyp td.ed{width:44px;padding-left:4px;padding-right:4px;text-align:center}
+.tab.wyp td.ed .ikbtn{width:32px;height:32px;border-radius:9px;margin:0 auto}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .sz-sek{display:flex;flex-direction:column;gap:8px}
 .pasek{display:flex;height:10px;border-radius:999px;overflow:hidden;background:var(--pow3);gap:2px}
 .pasek i{display:block;height:100%}
@@ -1628,8 +1633,8 @@ const TXT = {
 };
 const t = k => { const L = TXT[S.jezyk] || TXT.pl; return L[k] != null ? L[k] : TXT.pl[k]; };
 const ua = () => S.jezyk === 'ua';
-Object.assign(TXT.pl, { zmien: 'Wyloguj', rozl_po: 'Listopad trwa — to podgląd. Oficjalną wypłatę liczy HR po zamknięciu miesiąca; dni bez kwoty w arkuszu liczę ze stawek.' });
-Object.assign(TXT.ua, { zmien: 'Вийти', rozl_po: 'Листопад триває — це попередній перегляд. Офіційну виплату рахує HR після закриття місяця; дні без суми пораховано за ставками.' });
+Object.assign(TXT.pl, { zmien: 'Wyloguj', rozl_po: 'Listopad trwa — kwota rośnie z każdym dniem pracy. Pełne rozliczenie po zamknięciu miesiąca.' });
+Object.assign(TXT.ua, { zmien: 'Вийти', rozl_po: 'Листопад триває — сума зростає з кожним робочим днем. Повний розрахунок після закриття місяця.' });
 const loginJa = () => (typeof JA !== 'undefined' && JA && JA.login) || '';
 const TYP_N = { urlop: 'Urlop', choroba: 'Choroba (L4)', pozyczka: 'Pożyczka', zaliczka: 'Zaliczka', inne: 'Inna sprawa' };
 const pad2 = n => String(n).padStart(2, '0');
@@ -2145,11 +2150,11 @@ function renderObecnosci() {
       let tds = '', dni = 0, f = 0, r = 0, h = 0;
       p.m[k].d.forEach((c, i) => {
         const w = wdOf(M.y, M.m, i + 1);
-        if (!c) { const ab = nieob(p.id, `${k}-${pad2(i + 1)}`); tds += `<td class="c ${w >= 5 ? 'we' : ''}">${ab ? `<span class="k ${ab === 'urlop' ? 'ur' : 'l4'}" tabindex="0" data-tip="${esc(pelne(p))} · ${i + 1} ${MIES_D[M.m - 1]}|${ab === 'urlop' ? 'urlop' : 'chorobowe'} — przyjęty wniosek">${ab === 'urlop' ? 'U' : 'L4'}</span>` : ''}</td>`; return; }
+        if (!c) { const ab = nieob(p.id, `${k}-${pad2(i + 1)}`); tds += `<td class="c ${w >= 5 ? 'we' : ''}"${korAttr(p.id, k, i)}>${ab ? `<span class="k ${ab === 'urlop' ? 'ur' : 'l4'}" tabindex="0" data-tip="${esc(pelne(p))} · ${i + 1} ${MIES_D[M.m - 1]}|${ab === 'urlop' ? 'urlop' : 'chorobowe'} — przyjęty wniosek">${ab === 'urlop' ? 'U' : 'L4'}</span>` : ''}</td>`; return; }
         const t = c[0] === '?' ? 'U' : c[0]; dni++; if (t === 'F') f++; if (t === 'R') r++; h += c[1] || 0;
         const sup = c[1] && c[1] !== 12 ? `<sup>${String(c[1]).replace('.', ',')}</sup>` : '';
-        const tip = `${pelne(p)} · ${i + 1} ${MIES_D[M.m - 1]}|${t === 'U' ? 'miejsce nieznane (przed 23.09)' : MIEJSCE[t]} · ${String(c[1]).replace('.', ',')} h · ${c[2] ? zl(c[2]) + (c[3] ? ' (ze stawki — w arkuszu jeszcze bez kwoty)' : '') : 'bez stawki'}`;
-        tds += `<td class="c ${w >= 5 ? 'we' : ''}"><span class="k ${t}" tabindex="0" data-tip="${esc(tip)}">${t === 'U' ? '·' : t}${sup}</span></td>`;
+        const tip = `${pelne(p)} · ${i + 1} ${MIES_D[M.m - 1]}|${t === 'U' ? 'miejsce nieznane (przed 23.09)' : MIEJSCE[t]} · ${String(c[1]).replace('.', ',')} h · ${c[2] ? zl(c[2]) + (c[3] === 2 ? ' · poprawka HR' : c[3] ? ' · ze stawki' : '') : 'bez stawki'}`;
+        tds += `<td class="c ${w >= 5 ? 'we' : ''}${c[3] === 2 ? ' kor' : ''}"${korAttr(p.id, k, i)}><span class="k ${t}" tabindex="0" data-tip="${esc(tip)}">${t === 'U' ? '·' : t}${sup}</span></td>`;
       });
       rows.push(`<tr><th class="os" scope="row"><button data-a="osoba" data-id="${p.id}"><b>${esc(p.im)}</b> ${esc(p.sur)}</button></th>${tds}<td class="sum"><b>${dni}</b></td><td class="sum">${f}/${r}</td><td class="sum">${n0(h)}</td></tr>`);
     });
@@ -2162,7 +2167,7 @@ function renderObecnosci() {
   });
   $('#tresc').innerHTML = `
     <section class="karta"><div class="karta-gl"><div><span class="etykieta">Obecności · z raportów dziennych</span><h2 style="font-size:40px;margin-top:4px">${M.n} 2026</h2>
-      <p class="opis">Kto, gdzie i ile godzin — jak w arkuszu ${esc('Z-' + M.n.toUpperCase() + '-2026')}${M.wtoku ? `, dane do ${DO_LIS}; dni bez kwoty w arkuszu liczę ze stawek` : ''}.${M.wtoku && NIEZNANI.length ? ` Spoza listy: ${esc(spozaOpis())}.` : ''}</p></div>
+      <p class="opis">${esc(opisObecnosci(M))}</p></div>
       ${przelMies('mies', k)}</div>
       <div class="kafle k4">
         <div class="kafel"><span class="etykieta">Osobodni</span><span class="w">${n0(st.osobodni)}</span><span class="p">${n0(st.godz)} godzin</span></div>
@@ -2172,7 +2177,7 @@ function renderObecnosci() {
       </div>
     </section>
     <section class="karta">
-      <div class="narz"><div class="legenda" style="margin:0"><span><span class="k F">F</span> Fabryka</span><span><span class="k R">R</span> Restauracja</span><span><span class="k U">·</span> miejsce nieznane</span><span><span class="k ur">U</span> urlop</span><span><span class="k l4">L4</span> chorobowe</span><span><span class="k F">F<sup>10</sup></span> inna liczba godzin niż 12</span></div><span class="mala">Najedź lub dotknij znacznik, by zobaczyć godziny i dniówkę.</span></div>
+      <div class="narz"><div class="legenda" style="margin:0"><span><span class="k F">F</span> Fabryka</span><span><span class="k R">R</span> Restauracja</span><span><span class="k U">·</span> miejsce nieznane</span><span><span class="k ur">U</span> urlop</span><span><span class="k l4">L4</span> chorobowe</span><span><span class="k F">F<sup>10</sup></span> inna liczba godzin niż 12</span>${M.wtoku ? '<span><span class="k F kor">F</span> poprawka HR</span>' : ''}</div><span class="mala">Najedź lub dotknij znacznik, by zobaczyć godziny i dniówkę.</span></div>
       <div class="przew"><table class="sia">
         <thead><tr><th class="os" scope="col">Osoba</th>${naglowekDni(M.y, M.m, M.dni, dzis)}<th class="sum" scope="col">Dni</th><th class="sum" scope="col">F/R</th><th class="sum" scope="col">Godz.</th></tr></thead>
         <tbody>${rows.join('')}</tbody>
@@ -2188,14 +2193,22 @@ function renderObecnosci() {
 function renderPodejscie() {
   const m = DATA.model;
   $('#tresc').innerHTML = `
-    <section class="karta"><div class="karta-gl"><div><span class="etykieta">Podejście</span><h2 style="font-size:40px;margin-top:4px">Z arkusza do team.dysza.app</h2>
-      <p class="opis">Arkusz Z jest dobrze pomyślany: jedna zakładka = miesiąc, siatka dni, a dla każdego dnia miejsce, stawka, godziny i dniówka. Aplikacja zachowuje tę logikę, ale przestaje wymagać ręcznego przepisywania — i dokłada to, czego arkusz nie umie: ułożenie grafiku.</p></div></div>
+    <section class="karta"><div class="karta-gl"><div><span class="etykieta">Podejście</span><h2 style="font-size:40px;margin-top:4px">Plik Z od środy 11.11</h2>
+      <p class="opis">Od środy rano dane zespołu prowadzimy tylko w team.dysza.app. Pliki Z zostają archiwum: od wtorku wieczorem otwiera je wyłącznie właściciel. Nikt inny ich nie ogląda ani nie zmienia.</p>
+      <ul class="lista" style="margin-top:12px">
+        <li><b>Zmiany tylko w aplikacji.</b> HR Manager wpisuje stawki, role, miejsca, zaliczki, pożyczki, terminy, wnioski, grafik, poprawki obecności, dodatki i potrącenia. Pracownik składa preferencje i sprawy do HR.</li>
+        <li><b>Obecności z raportów dnia.</b> Od 11.11 dni pracy przychodzą z list obecności w raporty.dysza.app. HR je tylko poprawia.</li>
+        <li><b>Listopad 1–10 to ostatni stan pliku Z.</b> We wtorek wieczorem przenosimy Z-LISTOPAD do aplikacji i zamykamy plik.</li>
+        <li><b>Wypłata za listopad liczy się w aplikacji.</b> Dni 1–10 pochodzą z pliku Z, a od 11.11 z raportów i stawek z Załogi. Dodatki, potrącenia i przelewy HR wpisuje w Wypłatach. Od grudnia wszystko jest wyłącznie w aplikacji.</li>
+        <li><b>Historia jest w aplikacji.</b> Wrzesień, październik i 1–10 listopada są w team.dysza.app, więc do podglądu plik nie jest potrzebny.</li>
+        <li><b>Archiwum właściciela.</b> Pliki Z zostają bez zmian jako źródło do kontroli i porównań.</li>
+      </ul></div></div>
       <div class="dwa">
         <table class="mapa" aria-label="Kolumny arkusza i ich miejsce w aplikacji"><tbody>
           <tr><td><code>A–C</code> Nazwisko, Imię, Rola</td><td>Kartoteka z <b>manager.dysza.app</b> — osoba, stanowisko, zespół główny i dodatkowe. Jedno źródło dla wszystkich modułów.</td></tr>
           <tr><td>Miejsce + Godziny <code>31 × 2 kol.</code></td><td><b>Obecności</b> — same z list obecności w Raportach (raporty.dysza.app). Ręcznie tylko poprawki.</td></tr>
           <tr><td>Stawka + Dniówka <code>31 × 2 kol.</code></td><td><b>Stawka osoby w każdej roli, z datą obowiązywania</b>: zł/h, zł/dzień albo obie (dniówka = zł/h × godziny + zł/dzień), plus dopłaty za zadania, np. dyżur Social Media. Dziś część dniówek jest wpisana, a stawka liczona formułą — w aplikacji jedna reguła i wyraźne wyjątki (np. stała dniówka magazynu).</td></tr>
-          <tr><td><code>E–L</code> Podstawa … Pozostaje</td><td><b>Wypłaty</b> liczone na żywo; potrącenia stałe oddzielone od jednorazowych, żeby nie przechodziły z miesiąca na miesiąc przez kopiowanie wzorca.</td></tr>
+          <tr><td><code>E–L</code> Podstawa … Pozostaje</td><td><b>Wypłaty</b> liczone na żywo; bonus, dodatek, potrącenie, przelew i gotówkę wpisuje HR w Wypłatach.</td></tr>
           <tr><td><code>M–P</code> Dni, Fabryka, Restauracja, Godziny <code>=IF(…)+IF(…) × 31</code></td><td>Liczone automatycznie — bez formuł do przeciągania.</td></tr>
           <tr><td>Wiersz 1: suma dniówek dnia</td><td><b>Koszt dnia</b> w Obecnościach i w projekcie grafiku.</td></tr>
           <tr><td>Grafik rysowany ręcznie</td><td><b>Generator</b>: zapotrzebowanie × deklaracje × sprawiedliwość — Aneta poprawia, a nie rysuje od zera.</td></tr>
@@ -2255,12 +2268,10 @@ function renderPodejscie() {
         <li><b>Każdy ekran.</b> Ta sama siatka na komputerze, iPadzie i telefonie — pole nigdy nie wychodzi poza swoją kolumnę.</li>
       </ol>
     </section>
-    <section class="karta"><div class="karta-gl"><div><h2>Co dalej</h2></div></div>
+    <section class="karta"><div class="karta-gl"><div><h2>Terminy</h2></div></div>
       <ol class="lista">
-        <li><b>Aneta sprawdza grafik grudnia</b> — porównuje z grafikiem, który narysowałaby sama, i mówi, czego brakuje (np. pary osób, które nie powinny być razem na zmianie).</li>
-        <li><b>Pilotaż widoku pracownika</b> — kilka osób z załogi (w tym w wersji ukraińskiej) wysyła preferencje i jedną wiadomość; sprawdzamy, czy wszystko jest jasne bez instrukcji.</li>
-        <li><b>Obecności z Raportów do bazy</b> — arkusz Z staje się eksportem dla księgowości, a nie źródłem danych.</li>
-        <li><b>Wdrożenie team.dysza.app</b> — ten sam ekran logowania co w managerze, karta przeglądarki „Zespół”, moduł w kartotece dostępów.</li>
+        <li><b>Wtorek 10.11 wieczorem</b> — blokada pliku Z dla wszystkich poza właścicielem; ostatni stan Z-LISTOPAD (1–10.11) trafia do aplikacji.</li>
+        <li><b>Środa 11.11 od rana</b> — wszystkie zmiany tylko w team.dysza.app.</li>
       </ol>
     </section>`;
 }
@@ -2955,7 +2966,7 @@ function dodajZaliczke(q, ponad) {
 /* wypłaty — arkusz + Załoga: zaliczki w „Na konto”, umorzone w bonusie, raty, minus z poprzedniego miesiąca */
 /* ───────────── v11: Wypłaty — minimalizm i symetria: cztery kafle, krótkie nagłówki z podpowiedziami ───────────── */
 function renderWyplaty() {
-  const k = S.miesW, M = mies(k), ro = tylkoPodglad();
+  const k = S.miesW, M = mies(k), ro = tylkoPodglad(), edW = !ro && mozeKwoty(k);
   const nazwaPrzed = mies(MIES_PRZED[k] || '') ? mies(MIES_PRZED[k]).n.toLowerCase() : 'poprzedni miesiąc';
   const grupy = ROLE.map(rola => ({ rola, mem: DATA.people.filter(p => p.rola === rola && p.m[k].s).sort((a, b) => a.sur.localeCompare(b.sur, 'pl')) })).filter(g => g.mem.length);
   const RZ = {}; grupy.forEach(g => g.mem.forEach(p => { RZ[p.id] = rozliczenie(p.id, k); }));
@@ -2981,16 +2992,16 @@ function renderWyplaty() {
         : x === 'przen' && r.przen ? `${pelne(p)}|minus z wypłaty za ${nazwaPrzed}`
         : x === 'pozostaje' && r.pozostaje < 0 && !M.wtoku && k >= MIES_PRZED[ROZL_OD] ? `${pelne(p)}|minus przechodzi na następny miesiąc` : '');
       const kto = ro ? `<b>${esc(p.im)}</b> ${esc(p.sur)}` : `<button data-a="osoba" data-id="${p.id}" style="text-align:left"><b>${esc(p.im)}</b> ${esc(p.sur)}</button>`;
-      return `<tr><td class="os l">${kto}</td><td class="mono ${dni ? '' : 'zero'}">${dni || '—'}</td><td class="mono ${h ? '' : 'zero'}">${h ? n0(h) : '—'}</td>${KOL.map(x => td(pokaz(x, r[x]), tip(x))).join('')}</tr>`;
+      return `<tr><td class="os l">${kto}</td><td class="mono ${dni ? '' : 'zero'}">${dni || '—'}</td><td class="mono ${h ? '' : 'zero'}">${h ? n0(h) : '—'}</td>${KOL.map(x => td(pokaz(x, r[x]), tip(x))).join('')}${edW ? `<td class="ed"><button class="ikbtn" data-a="wypEd" data-id="${p.id}" aria-label="Kwoty: ${esc(pelne(p))}" data-tip="${esc(pelne(p))}|bonus, dodatek, potrącenie, przelew, gotówka">${IK_OL}</button></td>` : ''}</tr>`;
     });
-    rows.push(`<tr class="grupa"><td class="l os">${esc(ROLE_N[rola])} · ${mem.length}</td><td></td><td></td>${KOL.map(x => td(pokaz(x, sub[x]), '', 'liczba')).join('')}</tr>`);
+    rows.push(`<tr class="grupa"><td class="l os">${esc(ROLE_N[rola])} · ${mem.length}</td><td></td><td></td>${KOL.map(x => td(pokaz(x, sub[x]), '', 'liczba')).join('')}${edW ? '<td class="ed"></td>' : ''}</tr>`);
     rows.push(...body);
   });
-  const th = `<th class="os l">Osoba</th><th>Dni</th><th>Godz.</th>${KOL.map(x => `<th${NG[x][1] ? ` data-tip="${esc(NG[x][1])}"` : ''}>${NG[x][0]}</th>`).join('')}`;
+  const th = `<th class="os l">Osoba</th><th>Dni</th><th>Godz.</th>${KOL.map(x => `<th${NG[x][1] ? ` data-tip="${esc(NG[x][1])}"` : ''}>${NG[x][0]}</th>`).join('')}${edW ? '<th class="ed"><span class="sr">Kwoty</span></th>' : ''}`;
   const pWyp = [tot.rt ? `raty ${zl(tot.rt)}` : '', tot.przen ? `minus ${zl(Math.abs(tot.przen))}` : ''].filter(Boolean).join(' · ') || 'po potrąceniach';
   $('#tresc').innerHTML = `
     <section class="karta"><div class="karta-gl"><div><span class="etykieta">Wypłaty${ro ? ' · podgląd' : ''}</span><h2 style="font-size:40px;margin-top:4px">${M.n} 2026</h2>
-      <p class="opis">${M.wtoku ? 'Miesiąc w toku — podgląd: „Na konto” jest wpisane z góry, dniówki dopiero rosną. Oficjalnie liczy arkusz Z-LISTOPAD; dni bez kwoty liczę ze stawek.' : 'Podkreślony nagłówek i gwiazdka pokazują, z czego jest kwota.'}</p></div>
+      <p class="opis">${M.wtoku ? (edW ? 'Miesiąc w toku — dniówki rosną z raportów dnia. Bonus, dodatek, potrącenie, przelew i gotówkę wpisujesz ołówkiem w wierszu; puste pole = kwota z pliku Z.' : 'Miesiąc w toku — dniówki rosną z raportów dnia; kwoty wpisuje HR.') : 'Podkreślony nagłówek i gwiazdka pokazują, z czego jest kwota.'}</p></div>
       ${przelMies('miesW', k)}</div>
       <div class="kafle k4">
         <div class="kafel"><span class="etykieta">Podstawa</span><span class="w">${zl(tot.podstawa)}</span><span class="p">${tot.n} ${odm(tot.n, 'osoba', 'osoby', 'osób')}</span></div>
@@ -3001,7 +3012,7 @@ function renderWyplaty() {
     </section>
     <section class="karta"><div class="przew" style="max-height:min(78vh,1200px)"><table class="tab wyp">
       <thead><tr>${th}</tr></thead>
-      <tbody>${rows.join('')}<tr class="razem"><td class="l os">Razem</td><td></td><td></td>${KOL.map(x => td(pokaz(x, tot[x]))).join('')}</tr></tbody>
+      <tbody>${rows.join('')}<tr class="razem"><td class="l os">Razem</td><td></td><td></td>${KOL.map(x => td(pokaz(x, tot[x]))).join('')}${edW ? '<td class="ed"></td>' : ''}</tr></tbody>
     </table></div></section>`;
 }
 
@@ -3481,9 +3492,9 @@ const URL_BAZY = 'https://srmiealxhcbjornmnboe.supabase.co';
 const KLUCZ_API = 'sb_publishable_NkiS-_7GBmW5d3ufWjjFEg_CuCpaADz';   // klucz publiczny — dostęp sprawdzają funkcje bazy (role z managera)
 const KL = { sesja: 'team-sesja', login: 'team-login', osoby: 'team-osoby' };
 const MIES_PLAN = '2026-12';                                         // miesiąc grafiku, którego dotyczą preferencje
-const KLUCZE_DOK = ['fair', 'limitMode', 'maxStreak', 'maxMonth', 'smDzien', 'tryby', 'decl', 'include', 'seed', 'wersja', 'publ', 'zal', 'pozyczki', 'zaliczki', 'plany'];
-const DOMYSLNE_DOK = { fair: 'dni', limitMode: 'historia', maxStreak: 6, maxMonth: 22, smDzien: 1, tryby: {}, decl: {}, include: {}, seed: 7, wersja: 1, publ: null, zal: {}, pozyczki: [], zaliczki: [] };
-let JA = null, OB = {}, NIEZNANI = [], DO_LIS = '', DO_SPRZ = '', PLANY_SERWER = null, ODSW = null, ZAPISANO = null;
+const KLUCZE_DOK = ['fair', 'limitMode', 'maxStreak', 'maxMonth', 'smDzien', 'tryby', 'decl', 'include', 'seed', 'wersja', 'publ', 'zal', 'pozyczki', 'zaliczki', 'plany', 'obKor', 'wyp'];
+const DOMYSLNE_DOK = { fair: 'dni', limitMode: 'historia', maxStreak: 6, maxMonth: 22, smDzien: 1, tryby: {}, decl: {}, include: {}, seed: 7, wersja: 1, publ: null, zal: {}, pozyczki: [], zaliczki: [], obKor: {}, wyp: {} };
+let JA = null, OB = {}, NIEZNANI = [], DO_LIS = '', DO_Z = 0, DO_SPRZ = '', PLANY_SERWER = null, ODSW = null, ZAPISANO = null;
 const SYNC = { w: {}, js: {}, pref: null, czeka: null, kolejka: Promise.resolve(), blad: false };
 
 function czytaj(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
@@ -3638,7 +3649,7 @@ function stopka() {
   const el = $('#stopka'); if (!el) return;
   const czasZ = d => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
   const st = SYNC.blad ? 'bez połączenia — zapiszę, gdy wróci sieć' : ZAPISANO ? `zapisane ${czasZ(ZAPISANO)}` : '';
-  el.textContent = `team.dysza.app · Pracownia Sushi · obecności: arkusze Z i raporty dnia (do ${DO_LIS || '—'})${st ? ' · ' + st : ''}`;
+  el.textContent = `team.dysza.app · Pracownia Sushi · obecności do ${DO_LIS || '—'}: ${DO_Z ? `1–${DO_Z}.11 z pliku Z, potem ` : ''}raporty dnia i poprawki HR${st ? ' · ' + st : ''}`;
 }
 
 /* ───────── telefon w karcie Załogi (z kartoteki managera; baza przysyła go tylko HR i Architektowi) ───────── */
@@ -3655,21 +3666,167 @@ function telKarta(p) {
   return `<a class="kz-tel" href="tel:${esc(p.tel)}" aria-label="Zadzwoń: ${esc(telTxt(p.tel))}">${IK_TEL}${esc(telTxt(p.tel))}</a>`;
 }
 
+/* ───────── od 11.11 zmiany tylko w aplikacji (plik Z = archiwum właściciela): poprawki obecności i kwoty wypłat ───────── */
+const POLA_KW = ['bonus', 'dodatek', 'potracenie', 'na_konto', 'gotowka'];
+const NAZWY_KW = { bonus: 'Bonus', dodatek: 'Dodatek', potracenie: 'Potrącenie', na_konto: 'Przelew', gotowka: 'Gotówką' };
+const IK_OL = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg>';
+const mozeHR = () => !!(JA && (JA.rola === 'hr' || JA.rola === 'arch') && !S.zArch);
+const mozeKwoty = k => mozeHR() && k === MIES_ROZL;
+const godzTxt = g => String(g).replace('.', ',') + ' h';
+function kwotyMies(id, k) {                                  // kwoty wpisane w aplikacji; brak pola = kwota z pliku Z
+  const w = ((S.wyp || {})[k] || {})[id] || {}, o = {};
+  POLA_KW.forEach(f => { if (typeof w[f] === 'number' && isFinite(w[f])) o[f] = w[f]; });
+  return o;
+}
+function korAttr(id, k, i) {                                 // komórka Obecności: HR dotyka dnia, żeby go poprawić
+  if (!mozeHR() || k !== MIES_ROZL) return '';
+  const iso = `${k}-${pad2(i + 1)}`;
+  return iso <= dzisIso() ? ` data-a="obKor" data-id="${id}" data-d="${iso}" role="button" aria-label="Popraw dzień: ${esc(pelne(P[id]))}, ${i + 1} ${MIES_D[+k.slice(5) - 1]}"` : '';
+}
+function opisObecnosci(M) {
+  if (!M.wtoku) return `Kto, gdzie i ile godzin — z pliku Z-${M.n.toUpperCase()}-${M.y} (archiwum).`;
+  const zakres = DO_Z ? `1–${DO_Z}.${M.m} z pliku Z, potem z raportów dnia` : 'z raportów dnia';
+  return `Kto, gdzie i ile godzin — dane do ${DO_LIS || '—'}: ${zakres}.${mozeHR() ? ' Poprawka: dotknij dnia.' : ''}${NIEZNANI.length ? ` Spoza listy: ${spozaOpis()}.` : ''}`;
+}
+
+/* poprawka obecności — szuflada */
+function czytajKor() {
+  const f = S.kor; if (!f) return;
+  const h = $('#kor-h'), r = $('#kor-r');
+  if (h && !h.disabled && h.value !== '') { const g = parseFloat(String(h.value).replace(',', '.')); if (isFinite(g)) f.godz = Math.round(g * 2) / 2; }
+  if (r && !r.disabled) f.rola = r.value;
+}
+function kartaPoprawki(id, iso) {
+  const p = P[id]; if (!p) return;
+  const i = +iso.slice(8) - 1, c = p.m[MIES_ROZL].d[i];
+  const zx = p.mZ && p.mZ.d[i], rx = (OB[id] || {})[iso], kor = ((S.obKor || {})[id] || {})[iso];
+  if (!S.kor || S.kor.id !== id || S.kor.iso !== iso) {
+    S.kor = kor ? { id, iso, lok: kor.lok || '', godz: +kor.godz || p.godz || 12, rola: kor.rola || p.rola }
+      : { id, iso, lok: c && (c[0] === 'F' || c[0] === 'R') ? c[0] : (rx && rx.lok) || 'R', godz: (c && c[1]) || (rx && rx.godz) || p.godz || 12, rola: (rx && rx.rola) || p.rola };
+  }
+  const f = S.kor, prac = !!f.lok;
+  const opis = (lok, g) => `${MIEJSCE[lok] || 'miejsce nieznane'} · ${godzTxt(g)}`;
+  const teraz = kor ? `poprawka HR${kor.kto ? ' (' + kor.kto + ', ' + fmtKiedy(kor.kiedy) + ')' : ''}`
+    : zx && zx[2] > 0 ? `plik Z — ${opis(zx[0], zx[1])} · ${zl(zx[2])}` : rx ? `raport dnia — ${opis(rx.lok, rx.godz)}` : 'brak wpisu';
+  const [y, m, d] = iso.split('-').map(Number);
+  const role = ROLE_ZM.map(r => `<option value="${esc(r)}" ${r === f.rola ? 'selected' : ''}>${esc(ROLA_1[r] || r)}</option>`).join('');
+  const kw = prac ? zl(kwotaDnia(p, f.rola, iso, f.godz)) : 'bez dniówki';
+  $('#nakladka').innerHTML = `<div class="zaslona" data-a="zamknij"><aside class="szuflada" data-kor="${id}" role="dialog" aria-modal="true" aria-labelledby="kor-t" data-stop="1">
+    <div class="sz-g"><div><span class="etykieta">Poprawka obecności</span><h2 id="kor-t">${esc(pelne(p))}</h2><p class="mala" style="margin-top:6px">${esc(WDL[wdOf(y, m, d)])}, ${d} ${MIES_D[m - 1]} · teraz: ${esc(teraz)}</p></div><button class="ikbtn" data-a="zamknij" aria-label="Zamknij">${ik.x}</button></div>
+    <div class="sz-sek">${sekG('Dzień pracy', `<span id="kor-kw">${kw}</span>`)}
+      <div class="seg" role="group" aria-label="Dzień pracy">${[['F', 'Fabryka'], ['R', 'Restauracja'], ['', 'Nie pracował']].map(([v, n]) => `<button data-a="korLok" data-v="${v}" aria-pressed="${f.lok === v}">${n}</button>`).join('')}</div>
+      <div class="fg">${poleF('Godziny', 'kor-h', `<input type="number" id="kor-h" data-kor-pole="1" min="0.5" max="16" step="0.5" inputmode="decimal" value="${prac ? f.godz : ''}" ${prac ? '' : 'disabled'}>`, 'c3')}${poleF('Rola dnia', 'kor-r', `<select id="kor-r" data-kor-pole="1" ${prac ? '' : 'disabled'}>${role}</select>`, 'c3')}</div>
+      <span class="mala">Dniówka ze stawki tej roli w karcie Załogi. Poprawka ma pierwszeństwo przed raportem dnia i plikiem Z.</span></div>
+    <div class="sz-sek"><div class="fg">${kor ? '<button class="btn c2" data-a="korUsun">Usuń poprawkę</button>' : '<span class="c2"></span>'}<button class="btn c2" data-a="zamknij">Anuluj</button><button class="btn tak c2" data-a="korZapisz">Zapisz</button></div></div>
+  </aside></div>`;
+}
+
+/* kwoty wypłaty — szuflada */
+function kartaKwot(id, k) {
+  const p = P[id]; if (!p || !p.m[k]) return;
+  const zs = (p.mZ && k === MIES_ROZL ? p.mZ.s : p.m[k].s) || {}, w = ((S.wyp || {})[k] || {})[id] || {}, M = mies(k);
+  const pole = f => poleF(NAZWY_KW[f] + ' (zł)', 'kw-' + f, `<input type="number" id="kw-${f}" data-kw="${f}" min="0" step="0.01" inputmode="decimal" value="${typeof w[f] === 'number' ? w[f] : ''}" placeholder="${zs[f] ? 'z pliku Z: ' + n0(zs[f]) : '0'}">`, 'c2');
+  S.kw = { id, k };
+  $('#nakladka').innerHTML = `<div class="zaslona" data-a="zamknij"><aside class="szuflada" data-kw-os="${id}" role="dialog" aria-modal="true" aria-labelledby="kw-t" data-stop="1">
+    <div class="sz-g"><div><span class="etykieta">Wypłata · ${esc(M.n)} ${M.y}</span><h2 id="kw-t">${esc(pelne(p))}</h2><p class="mala" style="margin-top:6px">Puste pole = kwota z pliku Z. Zaliczki i raty dolicza aplikacja.${w.kiedy ? ` Wpisane: ${esc(w.kto || '')}, ${esc(fmtKiedy(w.kiedy))}.` : ''}</p></div><button class="ikbtn" data-a="zamknij" aria-label="Zamknij">${ik.x}</button></div>
+    <div class="sz-sek">${sekG('Wypłacić', '<span id="kw-wyp">—</span>')}
+      <div class="fg">${pole('bonus')}${pole('dodatek')}${pole('potracenie')}</div>
+      <div class="fg">${pole('na_konto')}${pole('gotowka')}<div class="pole c2"><span class="etykieta">Pozostaje</span><div class="ro-box" id="kw-poz">—</div></div></div>
+      <span class="mala">Przelew bez zaliczek — zaliczki z Załogi aplikacja dolicza do „Na konto”.</span></div>
+    <div class="sz-sek"><div class="fg">${Object.keys(kwotyMies(id, k)).length ? '<button class="btn c2" data-a="wypWyczysc">Jak w pliku Z</button>' : '<span class="c2"></span>'}<button class="btn c2" data-a="zamknij">Anuluj</button><button class="btn tak c2" data-a="wypZapisz">Zapisz</button></div></div>
+  </aside></div>`;
+  przeliczKwoty();
+}
+function polaKwot() {                                         // {pole: liczba | null (puste)} albo nazwa złego pola
+  const o = {};
+  for (const f of POLA_KW) {
+    const el = $('#kw-' + f), v = el ? String(el.value).trim().replace(',', '.') : '';
+    if (v === '') { o[f] = null; continue; }
+    const n = Math.round(parseFloat(v) * 100) / 100;
+    if (!isFinite(n) || n < 0 || n > 100000) return NAZWY_KW[f];
+    o[f] = n;
+  }
+  return o;
+}
+function przeliczKwoty() {                                    // podgląd na żywo: jak rozliczenie(), z kwotami z pól
+  const q = S.kw; if (!q || !$('#kw-poz')) return;
+  const p = P[q.id], pola = polaKwot();
+  if (typeof pola === 'string') { $('#kw-wyp').textContent = '—'; $('#kw-poz').textContent = '—'; return; }
+  const zs = (p.mZ && q.k === MIES_ROZL ? p.mZ.s : p.m[q.k].s) || {}, s = p.m[q.k].s || {};
+  const v = f => (pola[f] == null ? (zs[f] || 0) : pola[f]);
+  const zal = zaliczkiW(q.id, q.k), rt = ratyW(q.id, q.k), pk = MIES_PRZED[q.k];
+  const pr = q.k >= ROZL_OD && pk ? rozliczenie(q.id, pk) : null, przen = pr ? Math.min(0, pr.pozostaje) : 0;
+  const wyp = (s.podstawa || 0) + v('bonus') + zal.um + v('dodatek') - v('potracenie') - rt + przen;
+  $('#kw-wyp').textContent = zl(wyp);
+  $('#kw-poz').textContent = zl(wyp - (v('na_konto') + zal.all) - v('gotowka'));
+}
+document.addEventListener('input', e => {
+  if (e.target.closest && e.target.closest('[data-kw]')) przeliczKwoty();
+  if (e.target.closest && e.target.closest('[data-kor-pole]') && S.kor) { czytajKor(); const el = $('#kor-kw'), p = P[S.kor.id]; if (el && p && S.kor.lok) el.textContent = zl(kwotaDnia(p, S.kor.rola, S.kor.iso, S.kor.godz)); }
+});
+document.addEventListener('change', e => {
+  if (e.target.closest && e.target.closest('[data-kor-pole]') && S.kor) { czytajKor(); const el = $('#kor-kw'), p = P[S.kor.id]; if (el && p && S.kor.lok) el.textContent = zl(kwotaDnia(p, S.kor.rola, S.kor.iso, S.kor.godz)); }
+});
+function poZmianie(txt) { przeliczListopad(); zapisz(); $('#nakladka').innerHTML = ''; render(); toast('ok', esc(txt)); }
+Object.assign(A, {
+  obKor: el => { S.kor = null; kartaPoprawki(el.dataset.id, el.dataset.d); },
+  korLok: el => { if (!S.kor) return; czytajKor(); S.kor.lok = el.dataset.v; kartaPoprawki(S.kor.id, S.kor.iso); },
+  korZapisz: () => {
+    const f = S.kor; if (!f || !mozeHR()) return;
+    czytajKor();
+    if (f.lok && !(f.godz >= 0.5 && f.godz <= 16)) { toast('czyta', 'Godziny: od 0,5 do 16.'); return; }
+    const o = S.obKor[f.id] = S.obKor[f.id] || {}, p = P[f.id];
+    o[f.iso] = Object.assign(f.lok ? { lok: f.lok, godz: f.godz, rola: f.rola } : { lok: '' }, { kto: (JA && JA.login) || '', kiedy: new Date().toISOString() });
+    S.kor = null;
+    poZmianie(`${pelne(p)} · ${fmtD(f.iso)}: ${f.lok ? MIEJSCE[f.lok] + ', ' + godzTxt(f.godz) : 'nie pracował'} — zapisane.`);
+  },
+  korUsun: () => {
+    const f = S.kor; if (!f || !mozeHR()) return;
+    const o = S.obKor[f.id]; if (o) { delete o[f.iso]; if (!Object.keys(o).length) delete S.obKor[f.id]; }
+    S.kor = null;
+    poZmianie('Poprawka usunięta — dzień wraca do raportu dnia albo pliku Z.');
+  },
+  wypEd: el => kartaKwot(el.dataset.id, S.miesW),
+  wypZapisz: () => {
+    const q = S.kw; if (!q || !mozeKwoty(q.k)) return;
+    const pola = polaKwot();
+    if (typeof pola === 'string') { toast('czyta', esc(`${pola}: wpisz kwotę od 0 do 100 000 zł.`)); return; }
+    const e = {}; POLA_KW.forEach(f => { if (pola[f] != null) e[f] = pola[f]; });
+    const m = S.wyp[q.k] = S.wyp[q.k] || {};
+    if (Object.keys(e).length) m[q.id] = Object.assign(e, { kto: (JA && JA.login) || '', kiedy: new Date().toISOString() }); else delete m[q.id];
+    if (!Object.keys(m).length) delete S.wyp[q.k];
+    S.kw = null;
+    poZmianie(`${pelne(P[q.id])}: kwoty za ${mies(q.k).n.toLowerCase()} zapisane.`);
+  },
+  wypWyczysc: () => {
+    const q = S.kw; if (!q || !mozeKwoty(q.k)) return;
+    if (S.wyp[q.k]) { delete S.wyp[q.k][q.id]; if (!Object.keys(S.wyp[q.k]).length) delete S.wyp[q.k]; }
+    S.kw = null;
+    poZmianie(`${pelne(P[q.id])}: kwoty jak w pliku Z.`);
+  },
+});
+
 /* ───────── dane z bazy ───────── */
 function przeliczListopad() {                                // arkusz Z (dni z kwotą) + raporty dnia (dni bez kwoty, liczone ze stawek z Załogi)
   const K = MIES_ROZL, N = 30;
-  let max = 0;
+  let max = 0, zmax = 0;
   DATA.people.forEach(p => {
     const z = p.mZ; if (!z) return;
     const d = Array.from({ length: N }, (_, i) => (z.d[i] ? z.d[i].slice(0, 3) : 0));
     const ob = OB[p.id] || {};
     for (let i = 0; i < N; i++) {
       const iso = `${K}-${pad2(i + 1)}`, zx = d[i], rx = ob[iso];
-      if (zx && zx[2] > 0) continue;
+      if (zx && zx[2] > 0) { zmax = Math.max(zmax, i + 1); continue; }
       if (rx) d[i] = [rx.lok, rx.godz, kwotaDnia(p, rx.rola || p.rola, iso, rx.godz), 1];
       else if (zx) d[i] = [zx[0], zx[1], kwotaDnia(p, p.rola, iso, zx[1]), 1];
     }
-    const s = Object.assign({}, z.s || {});
+    const kor = (S.obKor || {})[p.id] || {};               // poprawki HR: ostatnie słowo dla dnia (także dni z pliku Z)
+    Object.keys(kor).forEach(iso => {
+      const i = +iso.slice(8) - 1, x = kor[iso]; if (iso.slice(0, 7) !== K || !(i >= 0 && i < N) || !x) return;
+      const g = +x.godz || 12;
+      d[i] = x.lok ? [x.lok, g, kwotaDnia(p, x.rola || p.rola, iso, g), 2] : 0;
+    });
+    const s = Object.assign({}, z.s || {}, kwotyMies(p.id, K));   // kwoty wpisane w aplikacji zastępują te z pliku Z
     s.podstawa = d.reduce((a, x) => a + (x ? x[2] || 0 : 0), 0);
     s.wyplacic = s.podstawa + (s.bonus || 0) + (s.dodatek || 0) - (s.potracenie || 0);
     s.pozostaje = s.wyplacic - (s.na_konto || 0) - (s.gotowka || 0);
@@ -3678,6 +3835,7 @@ function przeliczListopad() {                                // arkusz Z (dni z 
     d.forEach((x, i) => { if (x) { max = Math.max(max, i + 1); const iso = `${K}-${pad2(i + 1)}`; if (!p.last || p.last < iso) p.last = iso; } });
   });
   DO_LIS = max ? `${max}.11` : '';
+  DO_Z = zmax;
   TXT.pl.do411 = DO_LIS ? 'do ' + DO_LIS : 'w toku';
   TXT.ua.do411 = DO_LIS ? 'до ' + DO_LIS : 'триває';
 }
