@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>Zespół</title>
-<meta name="team-wersja" content="1.4.1 · 2026-11-09">
+<meta name="team-wersja" content="1.4.2 · 2026-11-09">
 <meta name="robots" content="noindex, nofollow">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="favicon.png">
@@ -230,10 +230,12 @@ main{max-width:1440px;margin:0 auto;padding:22px max(20px,env(safe-area-inset-ri
 /* ── siatka grafiku / obecności ── */
 .narz{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
 .filtry{display:flex;gap:6px;flex-wrap:wrap}
-.narz.zalN{align-items:flex-start}
-.narz.zalN>.filtry:first-child{flex:1 1 0;min-width:0}
-.narz.zalN>.filtry.miejsca{flex:0 0 auto;justify-content:flex-end}
-@media (max-width:700px){.narz.zalN>.filtry:first-child{flex-basis:100%}.narz.zalN>.filtry.miejsca{justify-content:flex-start}}
+.narz.zalN{align-items:stretch}
+.narz.zalN>.role2{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:6px}
+.narz.zalN>.mseg{flex:0 0 auto;display:flex;flex-direction:column;gap:3px;padding:3px;border:1px solid var(--ramka);border-radius:12px;background:var(--pow3)}
+.mseg button{flex:1 1 0;min-height:0;padding:0 16px;border:0;border-radius:9px;background:none;font-size:12.5px;font-weight:700;color:var(--tekst2);display:flex;align-items:center;justify-content:center;white-space:nowrap}
+.mseg button[aria-pressed="true"]{background:var(--tekst);color:var(--tlo)}
+@media (max-width:700px){.narz.zalN>.role2{flex-basis:100%}.narz.zalN>.mseg{flex:1 1 100%;flex-direction:row;height:42px}}
 .karta.nowi .opis{margin-top:4px}
 .nowi-l{display:flex;flex-direction:column;gap:8px;margin-top:12px}
 .nowy{display:grid;grid-template-columns:minmax(0,1fr) 220px auto auto;gap:10px;align-items:center;padding:8px 8px 8px 14px;border:1px solid var(--ramka);border-radius:14px;background:var(--pow2)}
@@ -2776,7 +2778,9 @@ function renderZaloga() {
   const role = ROLE_K;                                                                                              // zawsze wszystkie role — stały układ przycisków
   const filtr = role.includes(S.zFiltr) ? S.zFiltr : 'wszyscy', miejsce = S.zMiejsce === 'F' || S.zMiejsce === 'R' ? S.zMiejsce : '';
   const wMiejscu = p => !miejsce || !!lokEff(p.id)[miejsce];
-  const filtry = ['wszyscy', ...role].map(f => `<button data-a="zFiltr" data-f="${esc(f)}" aria-pressed="${filtr === f}">${f === 'wszyscy' ? 'Wszyscy' : esc(ROLE_N[f] || ROLA_1[f])}</button>`).join('');
+  const chipF = f => `<button data-a="zFiltr" data-f="${esc(f)}" aria-pressed="${filtr === f}">${f === 'wszyscy' ? 'Wszyscy' : esc(ROLE_N[f] || ROLA_1[f])}</button>`;
+  const wszF = ['wszyscy', ...role], pol = Math.ceil(wszF.length / 2);                                              // dwa równe rzędy, do lewej
+  const filtry = `<div class="filtry">${wszF.slice(0, pol).map(chipF).join('')}</div><div class="filtry">${wszF.slice(pol).map(chipF).join('')}</div>`;
   const filtryM = [['F', 'Fabryka'], ['R', 'Restauracja']].map(([v, n]) => `<button data-a="zMiejsce" data-v="${v}" aria-pressed="${miejsce === v}">${n}</button>`).join('');
   const rows = [];
   const grupyZ = filtr === 'wszyscy'
@@ -2817,7 +2821,7 @@ function renderZaloga() {
     </section>
     ${panelNowych()}
     <section class="karta">
-      <div class="narz zalN"><div class="filtry" role="group" aria-label="Filtr ról">${filtry}</div><div class="filtry miejsca" role="group" aria-label="Miejsce pracy">${filtryM}</div>
+      <div class="narz zalN"><div class="role2" role="group" aria-label="Filtr ról">${filtry}</div><div class="mseg" role="group" aria-label="Miejsce pracy">${filtryM}</div>
         <label class="ukryte" for="szukaj">Szukaj osoby</label><input type="search" class="szukaj" id="szukaj" placeholder="Szukaj osoby lub loginu" autocomplete="off"></div>
       <div class="przew" style="max-height:min(76vh,1100px)"><table class="tab zal">
         <thead><tr><th class="os l">Osoba</th><th class="l">Role</th><th class="l">Miejsca</th><th>Dniówka od 1.12</th><th>Zaliczki</th><th>Pożyczka</th><th class="l">Prośby</th><th class="l">Badania · BHP</th></tr></thead>
