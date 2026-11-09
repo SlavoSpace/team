@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>Zespół</title>
-<meta name="team-wersja" content="1.3 · 2026-11-09">
+<meta name="team-wersja" content="1.4 · 2026-11-09">
 <meta name="robots" content="noindex, nofollow">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="favicon.png">
@@ -230,6 +230,10 @@ main{max-width:1440px;margin:0 auto;padding:22px max(20px,env(safe-area-inset-ri
 /* ── siatka grafiku / obecności ── */
 .narz{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
 .filtry{display:flex;gap:6px;flex-wrap:wrap}
+.narz.zalN{align-items:flex-start}
+.narz.zalN>.filtry:first-child{flex:1 1 0;min-width:0}
+.narz.zalN>.filtry.miejsca{flex:0 0 auto;justify-content:flex-end}
+@media (max-width:700px){.narz.zalN>.filtry:first-child{flex-basis:100%}.narz.zalN>.filtry.miejsca{justify-content:flex-start}}
 .filtry button{min-height:32px;padding:0 11px;border-radius:999px;border:1px solid var(--ramka);background:var(--pow2);font-size:12.5px;font-weight:700;color:var(--tekst2)}
 .filtry button[aria-pressed="true"]{background:var(--tekst);color:var(--tlo);border-color:var(--tekst)}
 .przew{overflow:auto;max-height:min(76vh,1100px);border:1px solid var(--ramka);border-radius:12px;background:var(--pow);overscroll-behavior:contain}
@@ -1538,7 +1542,7 @@ const WD2 = ['pn', 'wt', 'śr', 'cz', 'pt', 'sb', 'nd'];
 const WDL = ['poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota', 'niedziela'];
 const MIES_D = ['stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca', 'lipca', 'sierpnia', 'września', 'października', 'listopada', 'grudnia'];
 const MIESIACE = [{ k: '2026-09', n: 'Wrzesień', y: 2026, m: 9, dni: 30 }, { k: '2026-10', n: 'Październik', y: 2026, m: 10, dni: 31 }, { k: '2026-11', n: 'Listopad', y: 2026, m: 11, dni: 30, wtoku: true }];
-const ROLE = ['Szef', 'Kucharz', 'Pomoc', 'Zmywak', 'Pakowanie', 'Kelner', 'Obsługa', 'Magazyn', 'Dyspozytor', 'Zarząd'];
+const ROLE = ['Szef', 'Kucharz', 'Pomoc', 'Zmywak', 'Pakowanie', 'Kelner', 'Obsługa', 'Magazyn', 'Dyspozytor', 'Zarząd', 'HR Manager'];
 const ROLE_N = { Szef: 'Kierownicy Zmian', Kucharz: 'Kucharze', Pomoc: 'Pomoc Kuchni', Zmywak: 'Zmywak', Pakowanie: 'Pakowanie', Kelner: 'Kelnerzy', 'Obsługa': 'Helpdesk', Magazyn: 'Magazyn', Dyspozytor: 'Dyspozytorzy Transportu', 'Social Media': 'Social Media', 'HR Manager': 'HR Manager', 'Zarząd': 'Zarząd' };
 const MIEJSCE = { F: 'Fabryka', R: 'Restauracja' };
 const P = {};
@@ -1673,7 +1677,7 @@ function opisPref(pr) {
 }
 function kandydaci(id) {
   const p = P[id], loc = glowneMiejsce(p);
-  return DATA.people.filter(q => q.id !== id && q.rola === p.rola && q.akt && q.lok[loc] > 0)
+  return DATA.people.filter(q => q.id !== id && (q.role || []).includes(p.rola) && q.akt && q.lok[loc] > 0)
     .map(q => ({ q, nov: q.m['2026-11'].d.filter(Boolean).length, okt: q.dni['2026-10'] }))
     .sort((a, b) => a.nov - b.nov || a.okt - b.okt).slice(0, 3);
 }
@@ -1709,8 +1713,8 @@ const S = {
 };
 const TRWALE = ['konto', 'jezyk', 'zArch', 'fair', 'limitMode', 'maxStreak', 'maxMonth', 'tryby', 'decl', 'include', 'pref', 'wnioski', 'publ', 'seed', 'wersja', 'mies', 'miesW', 'pMies', 'filtr', 'zal', 'pozyczki', 'zaliczki', 'wnFiltr', 'zFiltr', 'smDzien'];
 function stanTrwaly() { const o = {}; TRWALE.forEach(k => { o[k] = S[k]; }); return o; }
-function zapisz() { LS.set('ui', { mies: S.mies, miesW: S.miesW, pMies: S.pMies, filtr: S.filtr, wnFiltr: S.wnFiltr, zFiltr: S.zFiltr }); zaplanujZapis(); }
-function wczytaj() { const u = LS.get('ui', null); if (u) ['mies', 'miesW', 'pMies', 'filtr', 'wnFiltr', 'zFiltr'].forEach(k => { if (u[k] != null && (!/mies/i.test(k) || MIESIACE.some(M => M.k === u[k]))) S[k] = u[k]; }); }
+function zapisz() { LS.set('ui', { mies: S.mies, miesW: S.miesW, pMies: S.pMies, filtr: S.filtr, wnFiltr: S.wnFiltr, zFiltr: S.zFiltr, zMiejsce: S.zMiejsce || '' }); zaplanujZapis(); }
+function wczytaj() { const u = LS.get('ui', null); if (u) ['mies', 'miesW', 'pMies', 'filtr', 'wnFiltr', 'zFiltr', 'zMiejsce'].forEach(k => { if (u[k] != null && (!/mies/i.test(k) || MIESIACE.some(M => M.k === u[k]))) S[k] = u[k]; }); }
 
 /* ───────────── generator ───────────── */
 function trybDnia(x) { const o = S.tryby[x.d]; if (o && o !== 'auto') return o; return x.mode === 'closed' ? 'closed' : x.mode === 'normal' ? 'normal' : 'forecast'; }
@@ -1735,14 +1739,14 @@ function declGen() {
     (dc.off || []).forEach(x => { d.off[x] = true; if (!src[id][x]) src[id][x] = 'hr'; });
     if (dc.max != null) d.max = dc.max;
   });
-  Object.keys(S.zal).forEach(id => {
-    const z = S.zal[id], p = P[id]; if (!z || !p) return;
-    const iso = DZIEN_STAWEK, dod = (z.roleDod || []).filter(r => ROLE_ZM.includes(r) && r !== p.rola);
-    const sm = (z.roleDod || []).includes('Social Media'), dn = stawkaNa(id, iso);
-    if (!dod.length && !z.lok && dn === p.dn && !sm) return;
+  DATA.people.forEach(p => {
+    const id = p.id, z = S.zal[id], role = p.role || [];
+    const iso = DZIEN_STAWEK, dod = role.filter(r => ROLE_ZM.includes(r) && r !== p.rola);
+    const sm = role.includes('Social Media'), dn = dniowkaRoli(id, p.rola, iso);
+    if (!dod.length && !(z && z.lok) && dn === p.dn && !sm) return;
     const d = o(id);
     if (dod.length) { d.dod = dod; d.rates = {}; dod.forEach(r => { d.rates[r] = dniowkaRoli(id, r, iso); }); }
-    if (z.lok) d.lok = { F: !!z.lok.F, R: !!z.lok.R };
+    if (z && z.lok) d.lok = { F: !!z.lok.F, R: !!z.lok.R };
     if (dn !== p.dn) d.dn = dn;
     if (sm) { d.sm = true; d.smRate = dniowkaRoli(id, 'Social Media', iso); }
   });
@@ -2208,7 +2212,7 @@ function renderPodejscie() {
       </ul></div></div>
       <div class="dwa">
         <table class="mapa" aria-label="Kolumny arkusza i ich miejsce w aplikacji"><tbody>
-          <tr><td><code>A–C</code> Nazwisko, Imię, Rola</td><td>Kartoteka z <b>manager.dysza.app</b> — osoba, stanowisko, zespół główny i dodatkowe. Jedno źródło dla wszystkich modułów.</td></tr>
+          <tr><td><code>A–C</code> Nazwisko, Imię, Rola</td><td>Osoba, konto i dostępy do modułów — <b>manager.dysza.app</b>; role na zmianie, miejsca pracy i stawki — Zespół (tutaj).</td></tr>
           <tr><td>Miejsce + Godziny <code>31 × 2 kol.</code></td><td><b>Obecności</b> — same z list obecności w Raportach (raporty.dysza.app). Ręcznie tylko poprawki.</td></tr>
           <tr><td>Stawka + Dniówka <code>31 × 2 kol.</code></td><td><b>Stawka osoby w każdej roli, z datą obowiązywania</b>: zł/h, zł/dzień albo obie (dniówka = zł/h × godziny + zł/dzień), plus dopłaty za zadania, np. dyżur Social Media. Dziś część dniówek jest wpisana, a stawka liczona formułą — w aplikacji jedna reguła i wyraźne wyjątki (np. stała dniówka magazynu).</td></tr>
           <tr><td><code>E–L</code> Podstawa … Pozostaje</td><td><b>Wypłaty</b> liczone na żywo; bonus, dodatek, potrącenie, przelew i gotówkę wpisuje HR w Wypłatach.</td></tr>
@@ -2296,7 +2300,7 @@ function szuflada(id) {
   const wGrafiku = !!x;
   const nieakt = !p.akt && p.rola !== 'Zarząd';
   $('#nakladka').innerHTML = `<div class="zaslona" data-a="zamknij"><aside class="szuflada" role="dialog" aria-modal="true" aria-labelledby="sz-t" data-stop="1">
-    <div class="sz-g"><div><span class="etykieta">${esc(ROLE_N[p.rola])}</span><h2 id="sz-t">${esc(pelne(p))}</h2><p class="mala" style="margin-top:6px">Stawka ${esc(opisStawki(stawkaRoli(id, p.rola, dzisIso()) || domyslnaStawka(p)))} · dniówka ${zl(stawkaNa(id, dzisIso()))} · ${String(p.godz).replace('.', ',')} h${p.last ? ` · ostatnio ${p.last.slice(8, 10)}.${p.last.slice(5, 7)}` : ''}</p><button class="btn" data-a="karta" data-id="${id}" style="margin:10px 8px 0 0">${ik.osoby} Karta w Załodze</button>${S.konto && S.konto.typ === 'arch' ? `<button class="btn" data-a="podglad" data-id="${id}" style="margin-top:10px">${ik.oko} Zobacz jako ${esc(p.im)}</button>` : ''}</div><button class="ikbtn" data-a="zamknij" aria-label="Zamknij">${ik.x}</button></div>
+    <div class="sz-g"><div><span class="etykieta">${esc(ROLE_N[p.rola])}</span><h2 id="sz-t">${esc(pelne(p))}</h2><p class="mala" style="margin-top:6px">Stawka ${esc(opisStawki(stawkaRoli(id, '*', dzisIso()) || domyslnaStawka(p)))} · dniówka ${zl(stawkaNa(id, dzisIso()))} · ${String(p.godz).replace('.', ',')} h${p.last ? ` · ostatnio ${p.last.slice(8, 10)}.${p.last.slice(5, 7)}` : ''}</p><button class="btn" data-a="karta" data-id="${id}" style="margin:10px 8px 0 0">${ik.osoby} Karta w Załodze</button>${S.konto && S.konto.typ === 'arch' ? `<button class="btn" data-a="podglad" data-id="${id}" style="margin-top:10px">${ik.oko} Zobacz jako ${esc(p.im)}</button>` : ''}</div><button class="ikbtn" data-a="zamknij" aria-label="Zamknij">${ik.x}</button></div>
     ${x ? `<div class="sz-sek"><span class="etykieta">Grudzień · projekt</span><div class="wiersze">
       <div><span>Zmiany</span><b>${x.a} · cel ${n1(x.t)}</b></div>
       <div><span>Limit</span><b>${x.cap} (${esc(x.capSrc)})</b></div>
@@ -2515,7 +2519,7 @@ const MIES_ROZL = '2026-11'; // wypłata w toku — od niej liczą się raty
 const MIES_K = { pl: ['sty', 'lut', 'mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'wrz', 'paź', 'lis', 'gru'], ua: ['січ', 'лют', 'бер', 'кві', 'тра', 'чер', 'лип', 'сер', 'вер', 'жов', 'лис', 'гру'] };
 const MIES_POZ = [['2026-11', 'listopad'], ['2026-12', 'grudzień'], ['2027-01', 'styczeń 2027']];
 const PUSTA_ZAL = () => ({ roleDod: [], lok: null, stawkiRol: {}, zmianyStawek: [], badania: '', bhp: '', jezyk: '', notatka: '' });
-function zal(id) { if (!S.zal[id]) S.zal[id] = PUSTA_ZAL(); return S.zal[id]; }
+function zal(id) { if (!S.zal[id]) S.zal[id] = Object.assign(PUSTA_ZAL(), { role: P[id] ? [...(P[id].role || [])] : [] }); return S.zal[id]; }
 function zalR(id) { return S.zal[id] || PUSTA_ZAL(); }
 function lokEff(id) { const z = S.zal[id], p = P[id]; if (z && z.lok) return z.lok; const tot = p.lok.F + p.lok.R; return { F: tot === 0 || p.lok.F > 0, R: tot === 0 || p.lok.R > 0 }; }
 function planRat(l) {
@@ -2550,7 +2554,7 @@ function sugestieRol(d, gs) {
   gs.forEach(g => {
     const [rola, loc] = g.k.split('|');
     const ciag = x => { let l = 0, q = 0; for (let i = d - 2; i >= 0 && (x.plan[i] === 'F' || x.plan[i] === 'R'); i--) l++; for (let i = d; i < x.plan.length && (x.plan[i] === 'F' || x.plan[i] === 'R'); i++) q++; return l + 1 + q; };
-    const kand = r.persons.filter(x => x.rola !== rola && x.plan[d - 1] === '' && x.locs && x.locs[loc] && x.a < x.cap && ciag(x) <= S.maxStreak && !(zalR(x.id).roleDod || []).includes(rola))
+    const kand = r.persons.filter(x => x.rola !== rola && x.plan[d - 1] === '' && x.locs && x.locs[loc] && x.a < x.cap && ciag(x) <= S.maxStreak && !(P[x.id].role || []).includes(rola))
       .sort((a, b) => a.a / Math.max(1, a.t) - b.a / Math.max(1, b.t)).slice(0, 3);
     if (kand.length) out.push(`<div class="sugestie"><span class="mala" style="align-self:center">Albo dodaj rolę <b>${esc(ROLA_1[rola])}</b> komuś, kto ma wtedy wolne:</span>${kand.map(x => `<button class="btn" data-a="dodajRole" data-id="${x.id}" data-r="${esc(rola)}">+ ${esc(P[x.id].im)} ${esc(P[x.id].sur)} (${esc(ROLA_1[x.rola])})</button>`).join('')}</div>`);
   });
@@ -2568,23 +2572,23 @@ const DZIEN_STAWEK = '2026-12-01'; // projekt grudnia liczy stawki obowiązując
 
 /* stawka z arkusza: zwykle godzinowa (dniówka ÷ godziny), wyjątki ze stałą dniówką */
 function domyslnaStawka(p) { return p.styp === 'd' ? { h: null, d: p.dn } : { h: zaok2(p.dn / (p.godz || 12)), d: null }; }
-/* stawka osoby w roli w danym dniu: wpis w karcie (rola główna — domyślnie z arkusza), potem zmiany „od dnia” */
+/* stawka osoby w danym dniu: „*” = podstawowa (domyślnie z arkusza), rola = własna stawka roli; potem zmiany „od dnia” */
 function stawkaRoli(id, rola, iso) {
   const p = P[id], z = zalR(id);
-  let st = maKlucz(z.stawkiRol, rola) ? z.stawkiRol[rola] : (rola === p.rola ? domyslnaStawka(p) : null);
+  let st = maKlucz(z.stawkiRol, rola) ? z.stawkiRol[rola] : (rola === '*' ? domyslnaStawka(p) : null);
   (z.zmianyStawek || []).filter(c => c.rola === rola && c.od <= iso).sort((a, b) => a.od.localeCompare(b.od)).forEach(c => { st = c; });
   return st && (st.h != null || st.d != null) ? { h: st.h, d: st.d } : null;
 }
 const dniowkaZ = (st, H) => (st ? (st.h || 0) * H + (st.d || 0) : 0);
-/* dniówka = zł/h × godziny + zł/dzień; rola na zmianie bez własnej stawki = jak główna; zadanie dodatkowe bez stawki = 0 */
+/* dniówka = zł/h × godziny + zł/dzień; rola bez własnej stawki = podstawowa; zadanie dodatkowe (Social Media) bez stawki = 0 */
 function dniowkaRoli(id, rola, iso) {
   const p = P[id], H = p.godz || 12, st = stawkaRoli(id, rola, iso);
   if (st) return Math.round(dniowkaZ(st, H));
-  if (rola === p.rola) return Math.round(dniowkaZ(domyslnaStawka(p), H));
-  if (ROLE_ZM.includes(rola)) return dniowkaRoli(id, p.rola, iso);
-  return 0;
+  if (rola === '*') return Math.round(dniowkaZ(domyslnaStawka(p), H));
+  if (ROLE_DOD.includes(rola)) return 0;
+  return dniowkaRoli(id, '*', iso);
 }
-function stawkaNa(id, iso) { return dniowkaRoli(id, P[id].rola, iso); }
+function stawkaNa(id, iso) { return dniowkaRoli(id, '*', iso); }
 function opisStawki(st, prac) {
   if (!st) return '—';
   const a = [];
@@ -2595,16 +2599,58 @@ function opisStawki(st, prac) {
 function migrujZal() {
   Object.keys(S.zal || {}).forEach(id => {
     const z = S.zal[id], p = P[id]; if (!z || !p) return;
+    const rz = p.rolaZ !== undefined ? p.rolaZ : p.rola;     // rola z pliku Z (dawna „główna”)
     if (Array.isArray(z.stawki) && z.stawki.length) {
-      z.zmianyStawek = (z.zmianyStawek || []).concat(z.stawki.map(s => (p.styp === 'd' ? { od: s.od, rola: p.rola, h: null, d: s.dn } : { od: s.od, rola: p.rola, h: zaok2(s.dn / (p.godz || 12)), d: null })));
+      z.zmianyStawek = (z.zmianyStawek || []).concat(z.stawki.map(s => (p.styp === 'd' ? { od: s.od, rola: '*', h: null, d: s.dn } : { od: s.od, rola: '*', h: zaok2(s.dn / (p.godz || 12)), d: null })));
     }
     delete z.stawki;
     if (!z.stawkiRol) z.stawkiRol = {};
     if (!z.zmianyStawek) z.zmianyStawek = [];
+    // 1.4 · bez roli głównej: zestaw ról osoby; stawka dawnej roli głównej staje się stawką podstawową („*”)
+    if (!Array.isArray(z.role)) {
+      z.role = ROLE_K.filter(r => r === rz || (z.roleDod || []).includes(r));
+      if (maKlucz(z.stawkiRol, rz) && !maKlucz(z.stawkiRol, '*')) { z.stawkiRol['*'] = z.stawkiRol[rz]; delete z.stawkiRol[rz]; }
+      z.zmianyStawek = z.zmianyStawek.map(c => (c.rola === rz ? Object.assign({}, c, { rola: '*' }) : c));
+    }
   });
   if (S.smDzien == null) S.smDzien = 1;
   if (!Array.isArray(S.zaliczki)) S.zaliczki = [];
+  przeliczRole();
 }
+/* 1.4 · role osoby (co najmniej jedna) i rola grupy — liczona sama, nikt jej nie ustawia:
+   Zarząd → rola najczęściej pełniona w ostatnich 60 dniach (plik Z, raporty dnia, poprawki HR) → z pliku Z → pierwsza w kolejności firmy */
+function roleOsoby(p) {
+  const z = S.zal[p.id];
+  const r = z && Array.isArray(z.role) ? ROLE_K.filter(x => z.role.includes(x)) : ROLE_K.filter(x => x === p.rolaZ || ((z && z.roleDod) || []).includes(x));
+  return r.length ? r : (p.rolaZ ? [p.rolaZ] : []);
+}
+function rolaGrupy(p) {
+  const role = p.role, zm = role.filter(r => ROLE_ZM.includes(r));
+  if (role.includes('Zarząd')) return 'Zarząd';
+  if (!zm.length) return role[0] || p.rolaZ;
+  const od = new Date(Date.now() - 60 * 864e5).toISOString().slice(0, 10), dzien = {};
+  Object.keys(p.m || {}).forEach(k => {
+    const m = k === MIES_ROZL ? p.mZ : p.m[k];
+    ((m && m.d) || []).forEach((c, i) => { if (c && c[2] > 0) dzien[`${k}-${pad2(i + 1)}`] = p.rolaZ; });
+  });
+  const ob = (typeof OB !== 'undefined' && OB[p.id]) || {};
+  Object.keys(ob).forEach(iso => { if (ob[iso].rola) dzien[iso] = ob[iso].rola; });
+  const kor = (S.obKor || {})[p.id] || {};
+  Object.keys(kor).forEach(iso => { dzien[iso] = kor[iso] && kor[iso].lok ? kor[iso].rola : null; });
+  const ile = {};
+  Object.keys(dzien).forEach(iso => { const r = dzien[iso]; if (iso >= od && r && zm.includes(r)) ile[r] = (ile[r] || 0) + 1; });
+  const max = Math.max(0, ...Object.values(ile));
+  const kand = max ? zm.filter(r => ile[r] === max) : zm;
+  return kand.includes(p.rolaZ) ? p.rolaZ : kand[0];
+}
+function przeliczRole() {
+  Object.values(P).forEach(p => {
+    if (p.rolaZ === undefined) p.rolaZ = p.rola;
+    p.role = roleOsoby(p);
+    p.rola = rolaGrupy(p);
+  });
+}
+const nazwaStawki = r => (r === '*' ? 'Podstawowa' : ROLA_1[r] || r);
 /* zarobek osoby w danym dniu projektu: stawka roli, w której pracuje, + dopłata za dyżur Social Media */
 function zlDnia(x, i) {
   if (!(x.plan[i] === 'F' || x.plan[i] === 'R')) return 0;
@@ -2630,10 +2676,8 @@ const opcjeMiesPoz = () => MIES_POZ.map(([v, n]) => `<option value="${v}">${esc(
 
 function sekcjaRol(id) {
   const p = P[id], z = zalR(id), x = S.res ? osobaPlan(id) : null;
-  const chip = r => r === p.rola
-    ? `<button class="glowna" aria-pressed="true" aria-disabled="true" disabled>${esc(ROLA_1[r])} <small>główna</small></button>`
-    : `<button data-a="zRola" data-id="${id}" data-r="${esc(r)}" aria-pressed="${(z.roleDod || []).includes(r)}">${esc(ROLA_1[r])}</button>`;
-  const grupy = [['Na zmianie', ROLE_ZM, 'Grafik obsadza najpierw rolę główną, dodatkowymi łata luki'], ['Dodatkowe', ROLE_DOD, 'Dopłata za dzień, w którym je wykonuje'], ['Biuro', ROLE_BIURO, 'Poza grafikiem zmian']];
+  const chip = r => `<button data-a="zRola" data-id="${id}" data-r="${esc(r)}" aria-pressed="${p.role.includes(r)}">${esc(ROLA_1[r])}</button>`;
+  const grupy = [['Na zmianie', ROLE_ZM, 'Grafik obsadza najpierw rolę pełnioną najczęściej, pozostałymi łata luki'], ['Dodatkowe', ROLE_DOD, 'Dopłata za dzień, w którym je wykonuje'], ['Biuro', ROLE_BIURO, 'Poza grafikiem zmian']];
   const altN = x ? Object.keys(x.alt || {}).length : 0, smN = x ? x.smN || 0 : 0;
   const w = [altN ? `${altN} ${odm(altN, 'zmiana', 'zmiany', 'zmian')} w innej roli` : '', smN ? `${smN} ${odm(smN, 'dyżur', 'dyżury', 'dyżurów')} SM` : ''].filter(Boolean).join(' · ');
   return `<div class="sz-sek">${sekG('Role', w ? `grudzień: ${w}` : '')}
@@ -2642,25 +2686,25 @@ function sekcjaRol(id) {
 
 function sekcjaStawek(id) {
   const p = P[id], z = zalR(id), dzis = dzisIso(), H = p.godz || 12, Hs = String(H).replace('.', ',');
-  const wybrane = [p.rola, ...(z.roleDod || []).filter(r => r !== p.rola)];
+  const wybrane = ['*', ...p.role];
   const wiersz = r => {
-    const s = slugRoli(r), dodatek = ROLE_DOD.includes(r), biuro = ROLE_BIURO.includes(r) && r !== p.rola;
-    const base = maKlucz(z.stawkiRol, r) ? z.stawkiRol[r] : (r === p.rola ? domyslnaStawka(p) : { h: null, d: null });
-    const wlasna = !!stawkaRoli(id, r, dzis), jakGl = !wlasna && r !== p.rola && ROLE_ZM.includes(r), zArk = r === p.rola && !wlasna;
+    const pod = r === '*', s = pod ? 'podst' : slugRoli(r), dodatek = ROLE_DOD.includes(r), biuro = ROLE_BIURO.includes(r);
+    const base = maKlucz(z.stawkiRol, r) ? z.stawkiRol[r] : (pod ? domyslnaStawka(p) : { h: null, d: null });
+    const wlasna = !!stawkaRoli(id, r, dzis), jakGl = !wlasna && !pod && !dodatek, zArk = pod && !maKlucz(z.stawkiRol, '*') && !(z.zmianyStawek || []).some(c => c.rola === '*' && c.od <= dzis);
     const dn = dniowkaRoli(id, r, dzis);
-    const znak = r === p.rola ? '<span class="mini-chip">główna</span>' : dodatek ? '<span class="mini-chip sm">dopłata</span>' : biuro ? '<span class="mini-chip">biuro</span>' : '';
-    return `<tr><td class="l"><b>${esc(ROLA_1[r])}</b>${znak ? ' ' + znak : ''}</td>
-      <td><label class="ukryte" for="st-${s}-h">${esc(ROLA_1[r])}: złotych za godzinę</label><input class="st-in" id="st-${s}-h" type="number" step="0.01" min="0" inputmode="decimal" data-id="${id}" data-rola="${esc(r)}" data-pole="h" value="${base.h != null ? base.h : ''}" placeholder="—"></td>
-      <td><label class="ukryte" for="st-${s}-d">${esc(ROLA_1[r])}: złotych za dzień</label><input class="st-in" id="st-${s}-d" type="number" step="1" min="0" inputmode="numeric" data-id="${id}" data-rola="${esc(r)}" data-pole="d" value="${base.d != null ? base.d : ''}" placeholder="—"></td>
-      <td class="mono">${dn ? (dodatek ? '+' : '') + zl(dn) : '<span class="zero">—</span>'}${jakGl ? '<br><span class="mala">jak główna</span>' : zArk ? '<br><span class="mala">z arkusza</span>' : ''}</td></tr>`;
+    const znak = dodatek ? '<span class="mini-chip sm">dopłata</span>' : biuro ? '<span class="mini-chip">biuro</span>' : '';
+    return `<tr><td class="l"><b>${esc(nazwaStawki(r))}</b>${znak ? ' ' + znak : ''}</td>
+      <td><label class="ukryte" for="st-${s}-h">${esc(nazwaStawki(r))}: złotych za godzinę</label><input class="st-in" id="st-${s}-h" type="number" step="0.01" min="0" inputmode="decimal" data-id="${id}" data-rola="${esc(r)}" data-pole="h" value="${base.h != null ? base.h : ''}" placeholder="—"></td>
+      <td><label class="ukryte" for="st-${s}-d">${esc(nazwaStawki(r))}: złotych za dzień</label><input class="st-in" id="st-${s}-d" type="number" step="1" min="0" inputmode="numeric" data-id="${id}" data-rola="${esc(r)}" data-pole="d" value="${base.d != null ? base.d : ''}" placeholder="—"></td>
+      <td class="mono">${dn ? (dodatek ? '+' : '') + zl(dn) : '<span class="zero">—</span>'}${jakGl ? '<br><span class="mala">jak podstawowa</span>' : zArk ? '<br><span class="mala">z arkusza</span>' : ''}</td></tr>`;
   };
   const zm = (z.zmianyStawek || []).slice().sort((a, b) => a.od.localeCompare(b.od) || a.rola.localeCompare(b.rola));
-  const rek = zm.map(c => `<div class="rz"><div class="rz-g"><b>Od ${esc(fmtD(c.od))}${c.od.slice(0, 4) !== '2026' ? ' ' + c.od.slice(0, 4) : ''} · ${esc(ROLA_1[c.rola] || c.rola)}</b><span class="rz-a"><span class="mono-w">${esc(opisStawki(c))} → ${ROLE_DOD.includes(c.rola) ? '+' : ''}${zl(Math.round(dniowkaZ(c, H)))}</span><button class="btn mini nie" data-a="zZmianaUsun" data-id="${id}" data-od="${c.od}" data-rola="${esc(c.rola)}">Usuń</button></span></div></div>`).join('');
+  const rek = zm.map(c => `<div class="rz"><div class="rz-g"><b>Od ${esc(fmtD(c.od))}${c.od.slice(0, 4) !== '2026' ? ' ' + c.od.slice(0, 4) : ''} · ${esc(nazwaStawki(c.rola))}</b><span class="rz-a"><span class="mono-w">${esc(opisStawki(c))} → ${ROLE_DOD.includes(c.rola) ? '+' : ''}${zl(Math.round(dniowkaZ(c, H)))}</span><button class="btn mini nie" data-a="zZmianaUsun" data-id="${id}" data-od="${c.od}" data-rola="${esc(c.rola)}">Usuń</button></span></div></div>`).join('');
   return `<div class="sz-sek">${sekG('Stawki', `dniówka ${zl(stawkaNa(id, dzis))}`)}
     <div class="przew" style="max-height:none"><table class="tab stawki"><thead><tr><th class="l">Rola</th><th>zł/h</th><th>zł/dzień</th><th>Dniówka · ${Hs} h</th></tr></thead><tbody>${wybrane.map(wiersz).join('')}</tbody></table></div>
-    <span class="mala">Dniówka = zł/h × ${Hs} h + zł/dzień. Pusta stawka roli = jak główna. Zapis po wyjściu z pola.</span>
+    <span class="mala">Dniówka = zł/h × ${Hs} h + zł/dzień. Pusta stawka roli = jak podstawowa. Zapis po wyjściu z pola.</span>
     ${rek}
-    <div class="fg">${poleF('Rola', 'z-rola', `<select id="z-rola">${wybrane.map(r => `<option value="${esc(r)}">${esc(ROLA_1[r])}</option>`).join('')}</select>`, 'c2 p6')}${poleF('zł/h', 'z-h', '<input type="number" id="z-h" step="0.01" min="0" inputmode="decimal" placeholder="—">', 'c2')}${poleF('zł/dzień', 'z-d', '<input type="number" id="z-d" step="1" min="0" inputmode="numeric" placeholder="—">', 'c2')}
+    <div class="fg">${poleF('Rola', 'z-rola', `<select id="z-rola">${wybrane.map(r => `<option value="${esc(r)}">${esc(nazwaStawki(r))}</option>`).join('')}</select>`, 'c2 p6')}${poleF('zł/h', 'z-h', '<input type="number" id="z-h" step="0.01" min="0" inputmode="decimal" placeholder="—">', 'c2')}${poleF('zł/dzień', 'z-d', '<input type="number" id="z-d" step="1" min="0" inputmode="numeric" placeholder="—">', 'c2')}
       ${poleF('Nowa stawka od dnia', 'z-od', `<input type="date" id="z-od" min="${dzis}" value="${DZIEN_STAWEK}">`, 'c4 p6')}${btnDodajF('zZmiana', id)}</div></div>`;
 }
 
@@ -2690,10 +2734,10 @@ function kartaZalogi(id) {
   const z = zalR(id), lk = lokEff(id), arch = S.konto && S.konto.typ === 'arch';
   const wn = S.wnioski.filter(w => w.osoba === id).sort((a, b) => (a.stan === 'nowy' ? 0 : 1) - (b.stan === 'nowy' ? 0 : 1) || b.kiedy.localeCompare(a.kiedy)), nNowe = wn.filter(w => w.stan === 'nowy').length;
   const b1 = terminStan(z.badania), b2 = terminStan(z.bhp);
-  const poza = p.rola === 'Zarząd' && !(z.roleDod || []).some(r => ROLE_ZM.includes(r)) ? ' · poza grafikiem' : '';
+  const poza = !p.role.some(r => ROLE_ZM.includes(r)) ? ' · poza grafikiem' : '';
   const jez = `<div class="seg" role="group" aria-label="Język widoku pracownika"><button data-a="zJez" data-id="${id}" data-v="pl" aria-pressed="${(z.jezyk || p.jezyk || 'pl') === 'pl'}">Polski</button><button data-a="zJez" data-id="${id}" data-v="ua" aria-pressed="${(z.jezyk || p.jezyk || 'pl') === 'ua'}">Українська</button></div>`;
   $('#nakladka').innerHTML = `<div class="zaslona" data-a="zamknij"><aside class="szuflada szeroka" data-karta="${id}" role="dialog" aria-modal="true" aria-labelledby="kz-t" data-stop="1">
-    <div class="sz-g"><div><span class="etykieta">Karta w Załodze</span><div class="kz-nag"><h2 id="kz-t">${esc(pelne(p))}</h2>${telKarta(p)}</div><p class="mala" style="margin-top:6px">${esc(loginOf(p))} · ${esc(ROLA_1[p.rola])}${poza}</p>
+    <div class="sz-g"><div><span class="etykieta">Karta w Załodze</span><div class="kz-nag"><h2 id="kz-t">${esc(pelne(p))}</h2>${telKarta(p)}</div><p class="mala" style="margin-top:6px">${esc(loginOf(p))} · ${esc(p.role.map(r => ROLA_1[r] || r).join(', '))}${poza}</p>
       <div class="przyciski" style="margin-top:10px"><button class="btn" data-a="osoba" data-id="${id}">${ik.kalendarz} Grafik i historia</button>${arch ? `<button class="btn" data-a="podglad" data-id="${id}">${ik.oko} Zobacz jako ${esc(p.im)}</button>` : ''}</div></div>
       <button class="ikbtn" data-a="zamknij" aria-label="Zamknij">${ik.x}</button></div>
     ${sekcjaRol(id)}
@@ -2716,32 +2760,35 @@ function kartaZalogi(id) {
 
 function renderZaloga() {
   const ludzie = DATA.people.filter(p => p.akt || S.include[p.id] || p.rola === 'Zarząd');
-  const maRole = (p, list) => (zalR(p.id).roleDod || []).some(r => list.includes(r));
-  const zDod = ludzie.filter(p => maRole(p, ROLE_ZM)).length, zSM = ludzie.filter(p => maRole(p, ROLE_DOD)).length;
+  const zDod = ludzie.filter(p => (p.role || []).filter(r => ROLE_ZM.includes(r)).length > 1).length, zSM = ludzie.filter(p => (p.role || []).some(r => ROLE_DOD.includes(r))).length;
   const aktPoz = S.pozyczki.filter(l => saldoPoz(l) > 0 && P[l.osoba]);
   const saldoAll = aktPoz.reduce((s, l) => s + saldoPoz(l), 0), ratyTeraz = S.pozyczki.reduce((s, l) => s + planRat(l).filter(x => x.mies === MIES_ROZL).reduce((a, x) => a + x.kwota, 0), 0);
   const prosby = S.wnioski.filter(w => w.stan === 'nowy' && ['pozyczka', 'zaliczka', 'inne'].includes(w.typ)).length;
   let doOdn = 0, bezDat = 0;
   ludzie.forEach(p => { const z = zalR(p.id); [z.badania, z.bhp].forEach(v => { const st = terminStan(v); if (st.kl === 'uw' || st.kl === 'zle') doOdn++; }); if (!z.badania || !z.bhp) bezDat++; });
-  const filtr = S.zFiltr || 'wszyscy';
-  const role = ROLE_K.filter(x => ludzie.some(p => p.rola === x));
+  const role = ROLE_K;                                                                                              // zawsze wszystkie role — stały układ przycisków
+  const filtr = role.includes(S.zFiltr) ? S.zFiltr : 'wszyscy', miejsce = S.zMiejsce === 'F' || S.zMiejsce === 'R' ? S.zMiejsce : '';
+  const wMiejscu = p => !miejsce || !!lokEff(p.id)[miejsce];
   const filtry = ['wszyscy', ...role].map(f => `<button data-a="zFiltr" data-f="${esc(f)}" aria-pressed="${filtr === f}">${f === 'wszyscy' ? 'Wszyscy' : esc(ROLE_N[f] || ROLA_1[f])}</button>`).join('');
+  const filtryM = [['F', 'Fabryka'], ['R', 'Restauracja']].map(([v, n]) => `<button data-a="zMiejsce" data-v="${v}" aria-pressed="${miejsce === v}">${n}</button>`).join('');
   const rows = [];
-  role.forEach(rola => {
-    if (filtr !== 'wszyscy' && filtr !== rola) return;
-    const mem = ludzie.filter(p => p.rola === rola).sort((a, b) => a.sur.localeCompare(b.sur, 'pl'));
-    rows.push(`<tr class="grupa"><td class="l" colspan="9">${esc(ROLE_N[rola] || ROLA_1[rola])} · ${mem.length}</td></tr>`);
+  const grupyZ = filtr === 'wszyscy'
+    ? ROLE_K.filter(x => ludzie.some(p => p.rola === x)).map(x => [x, ludzie.filter(p => p.rola === x && wMiejscu(p))])   // każdy raz — w grupie roli pełnionej najczęściej
+    : [[filtr, ludzie.filter(p => (p.role || []).includes(filtr) && wMiejscu(p))]];                                     // wybrana rola — wszyscy, którzy ją mają
+  grupyZ.forEach(([rola, lista]) => {
+    if (!lista.length) return;
+    const mem = lista.sort((a, b) => a.sur.localeCompare(b.sur, 'pl'));
+    rows.push(`<tr class="grupa"><td class="l" colspan="8">${esc(ROLE_N[rola] || ROLA_1[rola])} · ${mem.length}</td></tr>`);
     mem.forEach(p => {
-      const z = zalR(p.id), lk = lokEff(p.id), dnN = stawkaNa(p.id, DZIEN_STAWEK), stN = stawkaRoli(p.id, p.rola, DZIEN_STAWEK) || domyslnaStawka(p);
-      const inne = Object.keys(z.stawkiRol || {}).filter(r => r !== p.rola && (z.stawkiRol[r].h != null || z.stawkiRol[r].d != null)).length;
+      const z = zalR(p.id), lk = lokEff(p.id), dnN = stawkaNa(p.id, DZIEN_STAWEK), stN = stawkaRoli(p.id, '*', DZIEN_STAWEK) || domyslnaStawka(p);
+      const inne = Object.keys(z.stawkiRol || {}).filter(r => r !== '*' && (z.stawkiRol[r].h != null || z.stawkiRol[r].d != null)).length;
       const pr = S.wnioski.filter(w => w.osoba === p.id && w.stan === 'nowy');
       const st = [terminStan(z.badania), terminStan(z.bhp)];
       const zle = st.find(x => x.kl === 'zle') || st.find(x => x.kl === 'uw');
       const sal = saldoOsoby(p.id), zo = zaliczkiOtwarte(p.id);
       rows.push(`<tr data-os="${p.id}" data-szukaj="${esc((p.sur + ' ' + p.im + ' ' + loginOf(p)).toLowerCase())}">
         <td class="os l"><button data-a="karta" data-id="${p.id}" style="text-align:left"><b>${esc(p.im)}</b> ${esc(p.sur)}</button><span class="not-slot">${ikonaNotatki(p.id)}</span>${!p.akt && p.rola !== 'Zarząd' ? ' <span class="mini-chip">wraca</span>' : ''}</td>
-        <td class="l">${esc(ROLA_1[p.rola])}</td>
-        <td class="l">${(z.roleDod || []).map(x => `<span class="mini-chip${ROLE_DOD.includes(x) ? ' sm' : ''}">${esc(ROLA_1[x])}</span>`).join('') || '<span class="zero">—</span>'}</td>
+        <td class="l">${(p.role || []).map(x => `<span class="mini-chip${ROLE_DOD.includes(x) ? ' sm' : ''}">${esc(ROLA_1[x] || x)}</span>`).join('')}</td>
         <td class="l">${lk.F ? '<span class="mini-chip F">F</span>' : ''}${lk.R ? '<span class="mini-chip R">R</span>' : ''}${z.lok ? ' <span class="mala">ręcznie</span>' : ''}</td>
         <td class="mono">${n0(dnN)}${dnN !== p.dn ? ` <span class="mala">(było ${n0(p.dn)})</span>` : ''}<br><span class="mala">${esc(opisStawki(stN))}${inne ? ` · +${inne} ${odm(inne, 'inna stawka', 'inne stawki', 'innych stawek')}` : ''}</span></td>
         <td class="mono ${zo ? '' : 'zero'}">${zo ? n0(zo) : '—'}</td>
@@ -2762,11 +2809,11 @@ function renderZaloga() {
       </div>
     </section>
     <section class="karta">
-      <div class="narz"><div class="filtry" role="group" aria-label="Filtr ról">${filtry}</div>
+      <div class="narz zalN"><div class="filtry" role="group" aria-label="Filtr ról">${filtry}</div><div class="filtry miejsca" role="group" aria-label="Miejsce pracy">${filtryM}</div>
         <label class="ukryte" for="szukaj">Szukaj osoby</label><input type="search" class="szukaj" id="szukaj" placeholder="Szukaj osoby lub loginu" autocomplete="off"></div>
       <div class="przew" style="max-height:min(76vh,1100px)"><table class="tab zal">
-        <thead><tr><th class="os l">Osoba</th><th class="l">Rola główna</th><th class="l">Może też</th><th class="l">Miejsca</th><th>Dniówka od 1.12</th><th>Zaliczki</th><th>Pożyczka</th><th class="l">Prośby</th><th class="l">Badania · BHP</th></tr></thead>
-        <tbody>${rows.join('')}</tbody>
+        <thead><tr><th class="os l">Osoba</th><th class="l">Role</th><th class="l">Miejsca</th><th>Dniówka od 1.12</th><th>Zaliczki</th><th>Pożyczka</th><th class="l">Prośby</th><th class="l">Badania · BHP</th></tr></thead>
+        <tbody>${rows.join('') || `<tr><td class="l" colspan="8"><span class="zero">${filtr !== 'wszyscy' && !ludzie.some(p => (p.role || []).includes(filtr)) ? `Nikt nie ma jeszcze roli ${esc(ROLA_1[filtr] || filtr)} — nadasz ją na karcie osoby, w sekcji Role.` : 'Nikt nie pasuje do wybranych filtrów.'}</span></td></tr>`}</tbody>
       </table></div>
     </section>`;
 }
@@ -2775,7 +2822,7 @@ function renderZaloga() {
 function lukiSM() {
   const r = R(); if (!S.smDzien || !r.smOkN || !r.smGaps || !r.smGaps.length) return '';
   const n = r.smGaps.length;
-  const kand = r.persons.filter(x => x.rola !== 'Zarząd' && !(zalR(x.id).roleDod || []).includes('Social Media'))
+  const kand = r.persons.filter(x => x.rola !== 'Zarząd' && !(P[x.id].role || []).includes('Social Media'))
     .map(x => ({ x, k: r.smGaps.filter(d => x.plan[d - 1] === 'F' || x.plan[d - 1] === 'R').length }))
     .filter(o => o.k > 0).sort((a, b) => b.k - a.k || P[a.x.id].sur.localeCompare(P[b.x.id].sur, 'pl')).slice(0, 3);
   return `<div class="luka-w"><span class="data">${n}<small>${odm(n, 'dzień', 'dni', 'dni')}</small></span><span class="co">Social Media bez dyżuru: ${r.smGaps.join(', ')} grudnia</span><span class="jak">W te dni nie pracuje nikt z rolą Social Media (${r.smOkN} ${odm(r.smOkN, 'osoba', 'osoby', 'osób')} w grafiku). Rozwiązania: <b>dodaj rolę Social Media</b> komuś, kto wtedy pracuje, albo poproś osobę z tą rolą o „chcę pracować” na te dni.${kand.length ? `<div class="sugestie"><span class="mala" style="align-self:center">Pracują w te dni:</span>${kand.map(o => `<button class="btn" data-a="dodajRole" data-id="${o.x.id}" data-r="Social Media">+ ${esc(P[o.x.id].im)} ${esc(P[o.x.id].sur)} (${o.k} ${odm(o.k, 'dzień', 'dni', 'dni')})</button>`).join('')}</div>` : ''}</span></div>`;
@@ -2784,17 +2831,17 @@ function lukiSM() {
 /* pracownik: stawki w pozostałych rolach */
 function kartaStawekP(p) {
   const z = zalR(p.id), dz = dzisIso();
-  const w = (z.roleDod || []).filter(r => r !== p.rola).map(r => {
+  const w = (p.role || []).map(r => {
     const st = stawkaRoli(p.id, r, dz), dn = dniowkaRoli(p.id, r, dz), dod = ROLE_DOD.includes(r);
-    if (!dn) return '';
+    if (!st || !dn) return '';
     return `<div><span>${esc(rolaT(r))}${st ? ' · ' + esc(opisStawki(st, true)) : ''}</span><b>${dod ? '+' + zl(dn) + ' ' + esc(t('za_dyzur')) : zl(dn)}</b></div>`;
   }).filter(Boolean);
   return w.length ? `<span class="etykieta" style="display:block;margin-top:14px">${esc(t('st_rol'))}</span><div class="rozl" style="margin-top:6px">${w.join('')}</div>` : '';
 }
 
 function stawkaBlokP(p) {
-  const dz = dzisIso(), stG = stawkaRoli(p.id, p.rola, dz) || domyslnaStawka(p);
-  return `<div><span class="etykieta">${esc(t('stawka'))} · ${esc(rolaT(p.rola))}</span><div class="duza" style="font-size:32px">${zl(stawkaNa(p.id, dz))}</div><div class="duza-p">${esc(t('za'))} ${String(p.godz).replace('.', ',')} ${esc(t('h'))} · ${esc(opisStawki(stG, true))}</div>${kartaStawekP(p)}</div>`;
+  const dz = dzisIso(), stG = stawkaRoli(p.id, '*', dz) || domyslnaStawka(p);
+  return `<div><span class="etykieta">${esc(t('stawka'))}</span><div class="duza" style="font-size:32px">${zl(stawkaNa(p.id, dz))}</div><div class="duza-p">${esc(t('za'))} ${String(p.godz).replace('.', ',')} ${esc(t('h'))} · ${esc(opisStawki(stG, true))}</div>${kartaStawekP(p)}</div>`;
 }
 
 /* wnioski — wersja z pożyczkami i filtrem */
@@ -3325,6 +3372,7 @@ const A = {
   pTyp: el => { S.pTyp = el.dataset.v; S.pBlad = ''; S.pForm = null; render(); },
   karta: el => kartaZalogi(el.dataset.id),
   zFiltr: el => { S.zFiltr = el.dataset.f; zapisz(); render(); },
+  zMiejsce: el => { S.zMiejsce = S.zMiejsce === el.dataset.v ? '' : el.dataset.v; zapisz(); render(); },
   wnFiltr: el => { S.wnFiltr = el.dataset.v; zapisz(); render(); },
   zLok: el => {
     const id = el.dataset.id, cur = lokEff(id), nw = { F: !!cur.F, R: !!cur.R };
@@ -3334,19 +3382,25 @@ const A = {
   },
   zLokReset: el => { zal(el.dataset.id).lok = null; uruchom(); render(); kartaZalogi(el.dataset.id); },
   zRola: el => {
-    const id = el.dataset.id, r = el.dataset.r, z = zal(id), i = z.roleDod.indexOf(r);
-    if (i >= 0) z.roleDod.splice(i, 1); else z.roleDod.push(r);
+    const id = el.dataset.id, r = el.dataset.r, z = zal(id);
+    if (!Array.isArray(z.role)) z.role = P[id].role.slice();
+    const i = z.role.indexOf(r);
+    if (i >= 0 && !z.role.some(x => x !== r && (ROLE_ZM.includes(x) || ROLE_BIURO.includes(x)))) { toast('czyta', 'Zostaw przynajmniej jedną rolę — na zmianie albo w biurze.'); return; }
+    if (i >= 0) z.role.splice(i, 1); else z.role.push(r);
+    przeliczRole();
     const luk = () => R().gaps.reduce((a, g) => a + g.n, 0), przed = luk();
     uruchom(); const po = luk(), x = osobaPlan(id); render(); kartaZalogi(id);
     let ext = '';
     if (i < 0 && ROLE_ZM.includes(r) && po < przed) ext = ` Grafik zamknął ${przed - po} ${odm(przed - po, 'lukę', 'luki', 'luk')}.`;
     if (i < 0 && r === 'Social Media') ext = `${S.smDzien && x ? ` W projekcie grudnia: ${x.smN} ${odm(x.smN, 'dyżur', 'dyżury', 'dyżurów')}.` : ''} Dopłatę za dyżur wpisz w tabeli „Stawki w rolach”.`;
     if (i < 0 && ROLE_BIURO.includes(r)) ext = ' Rola poza grafikiem zmian — stawkę wpiszesz w tabeli „Stawki w rolach”.';
-    toast(i >= 0 ? 'czyta' : 'ok', i >= 0 ? `${esc(P[id].im)} bez roli ${esc(ROLA_1[r])}.` : `${esc(P[id].im)} może też pełnić rolę <b>${esc(ROLA_1[r])}</b>.${ext}`);
+    toast(i >= 0 ? 'czyta' : 'ok', i >= 0 ? `${esc(P[id].im)} bez roli ${esc(ROLA_1[r])}.` : `${esc(P[id].im)} ma rolę <b>${esc(ROLA_1[r])}</b>.${ext}`);
   },
   dodajRole: el => {
     const id = el.dataset.id, r = el.dataset.r, z = zal(id);
-    if (!z.roleDod.includes(r)) z.roleDod.push(r);
+    if (!Array.isArray(z.role)) z.role = P[id].role.slice();
+    if (!z.role.includes(r)) z.role.push(r);
+    przeliczRole();
     if (r === 'Social Media') {
       const przed = (R().smGaps || []).length; uruchom(); const po = (R().smGaps || []).length; render();
       toast('ok', `${esc(P[id].im)} może też prowadzić <b>Social Media</b> (zapisane w Załodze). Dni bez dyżuru: ${przed} → ${po}. Dopłatę za dyżur wpiszesz w karcie osoby.`);
@@ -3365,7 +3419,7 @@ const A = {
     const z = zal(id); z.zmianyStawek = (z.zmianyStawek || []).filter(c => !(c.od === od && c.rola === rola));
     z.zmianyStawek.push({ od, rola, h: st.h, d: st.d });
     uruchom(); render(); kartaZalogi(id);
-    toast('ok', `${esc(P[id].im)} · ${esc(ROLA_1[rola])}: ${esc(opisStawki(st))} od ${esc(fmtD(od))}.${od <= DZIEN_STAWEK ? ' Projekt grudnia i szacunek zarobków już to uwzględniają.' : ' Projekt grudnia liczy stawki z 1.12 — ta zmiana zadziała od swojego dnia.'}`);
+    toast('ok', `${esc(P[id].im)} · ${esc(nazwaStawki(rola))}: ${esc(opisStawki(st))} od ${esc(fmtD(od))}.${od <= DZIEN_STAWEK ? ' Projekt grudnia i szacunek zarobków już to uwzględniają.' : ' Projekt grudnia liczy stawki z 1.12 — ta zmiana zadziała od swojego dnia.'}`);
   },
   zZmianaUsun: el => { const z = zal(el.dataset.id); z.zmianyStawek = (z.zmianyStawek || []).filter(c => !(c.od === el.dataset.od && c.rola === el.dataset.rola)); uruchom(); render(); kartaZalogi(el.dataset.id); },
   zZal: el => {
@@ -3458,11 +3512,11 @@ document.addEventListener('change', e => {
   if (el.classList && el.classList.contains('st-in') && el.dataset.id) {
     const id = el.dataset.id, r = el.dataset.rola, pole = el.dataset.pole, p = P[id], z = zal(id);
     if (!z.stawkiRol) z.stawkiRol = {};
-    const cur = maKlucz(z.stawkiRol, r) ? z.stawkiRol[r] : (r === p.rola ? domyslnaStawka(p) : { h: null, d: null });
+    const cur = maKlucz(z.stawkiRol, r) ? z.stawkiRol[r] : (r === '*' ? domyslnaStawka(p) : { h: null, d: null });
     const raw = String(el.value).replace(',', '.').trim(), v = raw === '' ? null : Number(raw);
     const nw = { h: cur.h, d: cur.d };
     nw[pole] = v == null || !isFinite(v) || v <= 0 ? null : (pole === 'h' ? zaok2(v) : Math.round(v));
-    if (r !== p.rola && nw.h == null && nw.d == null) delete z.stawkiRol[r]; else z.stawkiRol[r] = nw;
+    if (r !== '*' && nw.h == null && nw.d == null) delete z.stawkiRol[r]; else z.stawkiRol[r] = nw;
     setTimeout(() => { uruchom(); render(); if ($('.szuflada[data-karta]')) kartaZalogi(id); }, 0);
   }
   if ((el.id === 'z-bad' || el.id === 'z-bhp') && el.dataset.id) { zal(el.dataset.id)[el.id === 'z-bad' ? 'badania' : 'bhp'] = el.value; zapisz(); render(); kartaZalogi(el.dataset.id); }
@@ -4299,7 +4353,7 @@ function przeliczListopad() {                                // arkusz Z (dni z 
   TXT.ua.do411 = DO_LIS ? 'до ' + DO_LIS : 'триває';
 }
 function kwotaDnia(p, rola, iso, H) {
-  const st = stawkaRoli(p.id, rola, iso) || (ROLE_ZM.includes(rola) ? stawkaRoli(p.id, p.rola, iso) : null) || domyslnaStawka(p);
+  const st = (rola && rola !== '*' && !ROLE_DOD.includes(rola) && stawkaRoli(p.id, rola, iso)) || stawkaRoli(p.id, '*', iso) || domyslnaStawka(p);   // rola bez własnej stawki = podstawowa
   return Math.round(dniowkaZ(st, H || p.godz || 12));
 }
 function spozaOpis() {
