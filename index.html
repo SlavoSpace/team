@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>Zespół</title>
-<meta name="team-wersja" content="1.4 · 2026-11-09">
+<meta name="team-wersja" content="1.4.1 · 2026-11-09">
 <meta name="robots" content="noindex, nofollow">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="favicon.png">
@@ -234,6 +234,13 @@ main{max-width:1440px;margin:0 auto;padding:22px max(20px,env(safe-area-inset-ri
 .narz.zalN>.filtry:first-child{flex:1 1 0;min-width:0}
 .narz.zalN>.filtry.miejsca{flex:0 0 auto;justify-content:flex-end}
 @media (max-width:700px){.narz.zalN>.filtry:first-child{flex-basis:100%}.narz.zalN>.filtry.miejsca{justify-content:flex-start}}
+.karta.nowi .opis{margin-top:4px}
+.nowi-l{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.nowy{display:grid;grid-template-columns:minmax(0,1fr) 220px auto auto;gap:10px;align-items:center;padding:8px 8px 8px 14px;border:1px solid var(--ramka);border-radius:14px;background:var(--pow2)}
+.nowy .kto{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nowy select{height:40px;min-height:40px;border-radius:10px;border:1px solid var(--ramka2);background:var(--pow);padding:0 10px;font-size:16px;color:var(--tekst);font-family:inherit;width:100%}
+.nowy .chipy{flex-wrap:nowrap}.nowy .chipy button,.nowy .btn{height:40px;min-height:40px}
+@media (max-width:700px){.nowy{grid-template-columns:1fr auto}.nowy .kto{grid-column:1/-1}.nowy select{grid-column:1/-1}.nowy .btn{justify-content:center}}
 .filtry button{min-height:32px;padding:0 11px;border-radius:999px;border:1px solid var(--ramka);background:var(--pow2);font-size:12.5px;font-weight:700;color:var(--tekst2)}
 .filtry button[aria-pressed="true"]{background:var(--tekst);color:var(--tlo);border-color:var(--tekst)}
 .przew{overflow:auto;max-height:min(76vh,1100px);border:1px solid var(--ramka);border-radius:12px;background:var(--pow);overscroll-behavior:contain}
@@ -2808,6 +2815,7 @@ function renderZaloga() {
         <div class="kafel ${doOdn ? 'alarm' : ''}"><span class="etykieta">Badania i BHP</span><span class="w">${doOdn}</span><span class="p">do odnowienia w 30 dni · ${bezDat} bez dat</span></div>
       </div>
     </section>
+    ${panelNowych()}
     <section class="karta">
       <div class="narz zalN"><div class="filtry" role="group" aria-label="Filtr ról">${filtry}</div><div class="filtry miejsca" role="group" aria-label="Miejsce pracy">${filtryM}</div>
         <label class="ukryte" for="szukaj">Szukaj osoby</label><input type="search" class="szukaj" id="szukaj" placeholder="Szukaj osoby lub loginu" autocomplete="off"></div>
@@ -3959,13 +3967,15 @@ const KL = { sesja: 'team-sesja', login: 'team-login', osoby: 'team-osoby' };
 const MIES_PLAN = '2026-12';                                         // miesiąc grafiku, którego dotyczą preferencje
 const KLUCZE_DOK = ['fair', 'limitMode', 'maxStreak', 'maxMonth', 'smDzien', 'tryby', 'decl', 'include', 'seed', 'wersja', 'publ', 'zal', 'pozyczki', 'zaliczki', 'plany', 'obKor', 'wyp'];
 const DOMYSLNE_DOK = { fair: 'dni', limitMode: 'historia', maxStreak: 6, maxMonth: 22, smDzien: 1, tryby: {}, decl: {}, include: {}, seed: 7, wersja: 1, publ: null, zal: {}, pozyczki: [], zaliczki: [], obKor: {}, wyp: {} };
-let JA = null, OB = {}, NIEZNANI = [], DO_LIS = '', DO_Z = 0, DO_SPRZ = '', PLANY_SERWER = null, ODSW = null, ZAPISANO = null;
+let JA = null, OB = {}, NIEZNANI = [], NOWI = [], DO_LIS = '', DO_Z = 0, DO_SPRZ = '', PLANY_SERWER = null, ODSW = null, ZAPISANO = null;
 const SYNC = { w: {}, js: {}, pref: null, czeka: null, kolejka: Promise.resolve(), blad: false };
 
 function czytaj(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
 function pisz(k, v) { try { if (v === null || v === undefined) localStorage.removeItem(k); else localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* bez pamięci przeglądarki — sesja tylko w tej karcie */ } }
 const BLEDY = {
-  pl: { BRAK_DOSTEPU: 'Brak dostępu do Zespołu — poproś o rolę w manager.dysza.app.', BRAK_KARTY: 'Nie ma Cię jeszcze w Zespole — HR doda Cię wkrótce.', WKROTCE: 'Zespół otwieramy we wtorek 10.11.', ZA_DUZO: 'Masz już 10 zgłoszeń czekających na HR — poczekaj na odpowiedź.', 'NIE_MA:wniosek': 'Tego zgłoszenia już nie ma — odśwież stronę.', siec: 'Brak połączenia z bazą — sprawdź internet.' },
+  pl: { BRAK_DOSTEPU: 'Brak dostępu do Zespołu — poproś o rolę w manager.dysza.app.', BRAK_KARTY: 'Nie ma Cię jeszcze w Zespole — HR doda Cię wkrótce.', WKROTCE: 'Zespół otwieramy we wtorek 10.11.', ZA_DUZO: 'Masz już 10 zgłoszeń czekających na HR — poczekaj na odpowiedź.', 'NIE_MA:wniosek': 'Tego zgłoszenia już nie ma — odśwież stronę.', siec: 'Brak połączenia z bazą — sprawdź internet.',
+        'ZLA_WARTOSC:juz': 'Ta osoba jest już w Załodze.', 'ZLA_WARTOSC:role': 'Wybierz rolę — na zmianie albo w biurze.', 'ZLA_WARTOSC:miejsca': 'Wybierz miejsce pracy: Fabryka albo Restauracja.',
+        'ZLA_WARTOSC:osoba': 'Tej osoby nie ma już wśród aktywnych w managerze.', 'ZLA_WARTOSC:stawka': 'Stawka spoza zakresu — sprawdź kwotę.', KONFLIKT: 'Ktoś w tej chwili zapisał dane — spróbuj jeszcze raz.' },
   ua: { BRAK_DOSTEPU: 'Немає доступу до Команди — попроси роль у керуючого.', BRAK_KARTY: 'Тебе ще немає в Команді — HR скоро додасть.', WKROTCE: 'Команду відкриваємо у вівторок 10.11.', ZA_DUZO: 'У тебе вже 10 звернень, що чекають на HR — дочекайся відповіді.', 'NIE_MA:wniosek': 'Цього звернення вже немає — онови сторінку.', siec: 'Немає з’єднання з базою — перевір інтернет.' }
 };
 function tekstBledu(e) {
@@ -4362,6 +4372,7 @@ function spozaOpis() {
 }
 function zaladuj(d, zachowaj) {
   const W = d.wspolne || {};
+  NOWI = Array.isArray(d.nowi) ? d.nowi : [];                    // nowe osoby z managera (tylko HR) — czekają na dodanie do Załogi
   DATA = { people: d.ludzie || [], prof: W.prof || {}, dec: W.dec || [], model: W.model || {}, meta: W.meta || {}, sprzedaz: W.sprzedaz || { mies: {}, dni: {} } };
   Object.keys(P).forEach(k => { delete P[k]; });
   DATA.people.forEach(p => {
@@ -4579,6 +4590,51 @@ async function odswiezDane(wymus) {
 document.addEventListener('visibilitychange', () => { if (!document.hidden && JA && S.konto) planujOdswiezanie(1500); });
 window.addEventListener('pagehide', () => { if (SYNC.czeka) { clearTimeout(SYNC.czeka); SYNC.czeka = null; wKolejce(zapiszTeraz).catch(() => {}); } });
 Object.assign(A, { ponow: () => { startProd(); } });
+
+/* ───────── 1.4 · nowe osoby z managera → Załoga: rola i miejsce pracy, potem karta ───────── */
+const nowyStan = o => { S.nowy = S.nowy || {}; return (S.nowy[o] = S.nowy[o] || { rola: '', F: false, R: false }); };
+function panelNowych() {
+  if (!mozeHR() || !NOWI.length) return '';
+  const opcja = (s, r) => `<option value="${esc(r)}"${s.rola === r ? ' selected' : ''}>${esc(ROLA_1[r] || r)}</option>`;
+  const wiersz = n => {
+    const s = nowyStan(n.osoba), id = 'nw-' + String(n.osoba).slice(0, 8);
+    return `<div class="nowy" data-nowy="${esc(n.osoba)}">
+      <span class="kto"><b>${esc(n.imie || '')}</b> ${esc(n.nazwisko || '')}${n.login ? `<span class="mala"> · ${esc(n.login)}</span>` : ''}</span>
+      <label class="ukryte" for="${id}">Rola: ${esc((n.imie || '') + ' ' + (n.nazwisko || ''))}</label>
+      <select id="${id}" data-nw-rola="${esc(n.osoba)}"><option value="">Rola…</option><optgroup label="Na zmianie">${ROLE_ZM.map(r => opcja(s, r)).join('')}</optgroup><optgroup label="Biuro">${ROLE_BIURO.map(r => opcja(s, r)).join('')}</optgroup></select>
+      <div class="chipy" role="group" aria-label="Miejsce pracy">${[['F', 'Fabryka'], ['R', 'Restauracja']].map(([v, t]) => `<button data-a="nwLok" data-o="${esc(n.osoba)}" data-v="${v}" aria-pressed="${!!s[v]}">${t}</button>`).join('')}</div>
+      <button class="btn tak" data-a="nwDodaj" data-o="${esc(n.osoba)}">Dodaj do Załogi</button></div>`;
+  };
+  return `<section class="karta nowi">${sekG(`Nowe osoby z managera · ${NOWI.length}`, 'konto i dostęp nadał zarządca')}
+    <p class="opis">Wybierz rolę i miejsce pracy — osoba trafi do Załogi, grafiku i wypłat. Kolejne role i stawkę ustawisz na karcie, która otworzy się zaraz potem.</p>
+    <div class="nowi-l">${NOWI.map(wiersz).join('')}</div></section>`;
+}
+async function dodajDoZalogi(o, btn) {
+  const s = nowyStan(o), n = NOWI.find(x => x.osoba === o); if (!n || !mozeHR()) return;
+  if (!s.rola) { toast('czyta', 'Wybierz rolę — na zmianie albo w biurze.'); const el = document.querySelector(`[data-nw-rola="${CSS.escape(o)}"]`); if (el) el.focus(); return; }
+  if (!s.F && !s.R) { toast('czyta', 'Wybierz miejsce pracy: Fabryka albo Restauracja.'); return; }
+  if (btn) btn.disabled = true;
+  try {
+    clearTimeout(SYNC.czeka); SYNC.czeka = null;
+    await wKolejce(zapiszTeraz);                                   // najpierw zapisane zmiany z tej karty — wersje zgodne z bazą
+    const r = await wKolejce(() => baza.rpc('team_dodaj_osobe', { p_osoba: o, p_karta: { role: [s.rola], lok: { F: !!s.F, R: !!s.R } } }));
+    const d = await wKolejce(() => baza.rpc('team_dane', {}));
+    const widok = S.widok; delete S.nowy[o];
+    zaladuj(d, true); S.widok = widok; render();
+    if (r && r.klucz && P[r.klucz]) kartaZalogi(r.klucz);
+    toast('ok', `${esc(n.imie || 'Osoba')} ${esc(n.nazwisko || '')} w Załodze. Ustaw stawkę podstawową i — jeśli trzeba — kolejne role.`);
+  } catch (e) {
+    if (e && e.sesja) { pokazLogowanie('Sesja wygasła — zaloguj się ponownie.'); return; }
+    if (String((e && e.message) || '') === 'ZLA_WARTOSC:juz') { odswiezDane(true); }
+    toast('czyta', esc(tekstBledu(e)));
+    if (btn) btn.disabled = false;
+  }
+}
+Object.assign(A, {
+  nwLok: el => { const s = nowyStan(el.dataset.o); s[el.dataset.v] = !s[el.dataset.v]; render(); },
+  nwDodaj: el => { dodajDoZalogi(el.dataset.o, el); },
+});
+document.addEventListener('change', e => { const o = e.target && e.target.dataset && e.target.dataset.nwRola; if (o) nowyStan(o).rola = e.target.value; });
 
 (function () {
   const m = LS.get('motyw', null); if (m) document.documentElement.setAttribute('data-theme', m);
