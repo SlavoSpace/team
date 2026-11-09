@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>Zespół</title>
-<meta name="team-wersja" content="1.4.2 · 2026-11-09">
+<meta name="team-wersja" content="1.4.3 · 2026-11-09">
 <meta name="robots" content="noindex, nofollow">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="favicon.png">
@@ -662,6 +662,8 @@ details.liczby summary{cursor:pointer;font-size:13px;font-weight:700;color:var(-
 .fg .pole input,.fg .pole select{height:44px;min-height:44px;border-radius:10px;padding:0 12px;font-size:16px}
 .fg .btn{height:44px;min-height:44px;border-radius:10px;justify-content:center;font-size:14px}
 .fg .stan-t{margin-top:-4px}
+.fg.terminy{row-gap:12px}
+.fg.terminy .stan-t{margin-top:0;align-self:end;min-height:44px;display:flex;align-items:center}
 @media (max-width:520px){.fg .c2{grid-column:span 3}.fg .p6{grid-column:span 6}}
 .rz{border:1px solid var(--ramka);border-radius:12px;padding:10px 12px;background:var(--pow2);display:flex;flex-direction:column;gap:4px;font-size:13.5px}
 .rz.umorz{background:color-mix(in srgb,var(--archTlo) 55%,var(--pow2))}
@@ -2527,7 +2529,8 @@ const ROLE_K = [...ROLE_ZM, ...ROLE_DOD, ...ROLE_BIURO];
 const MIES_ROZL = '2026-11'; // wypłata w toku — od niej liczą się raty
 const MIES_K = { pl: ['sty', 'lut', 'mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'wrz', 'paź', 'lis', 'gru'], ua: ['січ', 'лют', 'бер', 'кві', 'тра', 'чер', 'лип', 'сер', 'вер', 'жов', 'лис', 'гру'] };
 const MIES_POZ = [['2026-11', 'listopad'], ['2026-12', 'grudzień'], ['2027-01', 'styczeń 2027']];
-const PUSTA_ZAL = () => ({ roleDod: [], lok: null, stawkiRol: {}, zmianyStawek: [], badania: '', bhp: '', jezyk: '', notatka: '' });
+const PUSTA_ZAL = () => ({ roleDod: [], lok: null, stawkiRol: {}, zmianyStawek: [], badania: '', bhp: '', pobyt: '', jezyk: '', notatka: '' });
+const TERMINY = [['badania', 'Sanepid', 'Sanepid do', 'z-bad'], ['bhp', 'BHP', 'BHP do', 'z-bhp'], ['pobyt', 'Pobyt', 'Prawo pobytu do', 'z-pob']];   // daty z kartą: klucz, krótka nazwa, etykieta, pole
 function zal(id) { if (!S.zal[id]) S.zal[id] = Object.assign(PUSTA_ZAL(), { role: P[id] ? [...(P[id].role || [])] : [] }); return S.zal[id]; }
 function zalR(id) { return S.zal[id] || PUSTA_ZAL(); }
 function lokEff(id) { const z = S.zal[id], p = P[id]; if (z && z.lok) return z.lok; const tot = p.lok.F + p.lok.R; return { F: tot === 0 || p.lok.F > 0, R: tot === 0 || p.lok.R > 0 }; }
@@ -2742,7 +2745,7 @@ function kartaZalogi(id) {
   const stary = $('.szuflada[data-karta]'), sc = stary && stary.dataset.karta === id ? stary.scrollTop : null, fok = sc != null ? kluczFokusu() : null;
   const z = zalR(id), lk = lokEff(id), arch = S.konto && S.konto.typ === 'arch';
   const wn = S.wnioski.filter(w => w.osoba === id).sort((a, b) => (a.stan === 'nowy' ? 0 : 1) - (b.stan === 'nowy' ? 0 : 1) || b.kiedy.localeCompare(a.kiedy)), nNowe = wn.filter(w => w.stan === 'nowy').length;
-  const b1 = terminStan(z.badania), b2 = terminStan(z.bhp);
+  const terminyK = TERMINY.map(([k, n, lab, el]) => [k, lab, el, terminStan(z[k])]);
   const poza = !p.role.some(r => ROLE_ZM.includes(r)) ? ' · poza grafikiem' : '';
   const jez = `<div class="seg" role="group" aria-label="Język widoku pracownika"><button data-a="zJez" data-id="${id}" data-v="pl" aria-pressed="${(z.jezyk || p.jezyk || 'pl') === 'pl'}">Polski</button><button data-a="zJez" data-id="${id}" data-v="ua" aria-pressed="${(z.jezyk || p.jezyk || 'pl') === 'ua'}">Українська</button></div>`;
   $('#nakladka').innerHTML = `<div class="zaslona" data-a="zamknij"><aside class="szuflada szeroka" data-karta="${id}" role="dialog" aria-modal="true" aria-labelledby="kz-t" data-stop="1">
@@ -2750,13 +2753,13 @@ function kartaZalogi(id) {
       <div class="przyciski" style="margin-top:10px"><button class="btn" data-a="osoba" data-id="${id}">${ik.kalendarz} Grafik i historia</button>${arch ? `<button class="btn" data-a="podglad" data-id="${id}">${ik.oko} Zobacz jako ${esc(p.im)}</button>` : ''}</div></div>
       <button class="ikbtn" data-a="zamknij" aria-label="Zamknij">${ik.x}</button></div>
     ${sekcjaRol(id)}
-    ${sekcjaStawek(id)}
     <div class="sz-sek">${sekG('Miejsca pracy', z.lok ? `<button class="lnk" data-a="zLokReset" data-id="${id}">przywróć z obecności</button>` : `z obecności: F ${p.lok.F} · R ${p.lok.R}`)}
       <div class="chipy" role="group" aria-label="Miejsca"><button data-a="zLok" data-id="${id}" data-v="F" aria-pressed="${!!lk.F}">Fabryka</button><button data-a="zLok" data-id="${id}" data-v="R" aria-pressed="${!!lk.R}">Restauracja</button></div></div>
+    ${sekcjaStawek(id)}
     ${sekcjaZaliczek(id)}
     ${sekcjaPozyczek(id)}
     <div class="sz-sek">${sekG('Prośby i wnioski', nNowe ? `${nNowe} ${odm(nNowe, 'nowa', 'nowe', 'nowych')}` : '')}${wn.length ? `<div class="luki">${wn.map(kartaWniosku).join('')}</div>` : '<span class="mala">Brak próśb.</span>'}</div>
-    <div class="sz-sek">${sekG('Terminy', '')}<div class="fg">${poleF('Sanepid do', 'z-bad', `<input type="date" id="z-bad" data-id="${id}" value="${esc(z.badania || '')}">`, 'c3')}${poleF('BHP do', 'z-bhp', `<input type="date" id="z-bhp" data-id="${id}" value="${esc(z.bhp || '')}">`, 'c3')}<span class="stan-t ${b1.kl} c3">${esc(b1.txt)}</span><span class="stan-t ${b2.kl} c3">${esc(b2.txt)}</span></div></div>
+    <div class="sz-sek">${sekG('Terminy', '')}<div class="fg terminy">${terminyK.map(([k, lab, el, b]) => poleF(lab, el, `<input type="date" id="${el}" data-id="${id}" data-termin="${k}" value="${esc(z[k] || '')}">`, 'c3') + `<span class="stan-t ${b.kl} c3">${esc(b.txt)}</span>`).join('')}</div></div>
     <div class="sz-sek sek-rz">${sekG('Język widoku pracownika', jez)}</div>
     <div class="sz-sek">${sekG('Notatka HR', 'widzi tylko HR', 'z-not')}<div class="pole notatka-hr"><textarea id="z-not" data-id="${id}" placeholder="np. ustalenia z rozmowy">${esc(z.notatka || '')}</textarea></div></div>
   </aside></div>`;
@@ -2774,7 +2777,7 @@ function renderZaloga() {
   const saldoAll = aktPoz.reduce((s, l) => s + saldoPoz(l), 0), ratyTeraz = S.pozyczki.reduce((s, l) => s + planRat(l).filter(x => x.mies === MIES_ROZL).reduce((a, x) => a + x.kwota, 0), 0);
   const prosby = S.wnioski.filter(w => w.stan === 'nowy' && ['pozyczka', 'zaliczka', 'inne'].includes(w.typ)).length;
   let doOdn = 0, bezDat = 0;
-  ludzie.forEach(p => { const z = zalR(p.id); [z.badania, z.bhp].forEach(v => { const st = terminStan(v); if (st.kl === 'uw' || st.kl === 'zle') doOdn++; }); if (!z.badania || !z.bhp) bezDat++; });
+  ludzie.forEach(p => { const z = zalR(p.id); [z.badania, z.bhp, z.pobyt].forEach(v => { const st = terminStan(v); if (st.kl === 'uw' || st.kl === 'zle') doOdn++; }); if (!z.badania || !z.bhp) bezDat++; });
   const role = ROLE_K;                                                                                              // zawsze wszystkie role — stały układ przycisków
   const filtr = role.includes(S.zFiltr) ? S.zFiltr : 'wszyscy', miejsce = S.zMiejsce === 'F' || S.zMiejsce === 'R' ? S.zMiejsce : '';
   const wMiejscu = p => !miejsce || !!lokEff(p.id)[miejsce];
@@ -2794,7 +2797,7 @@ function renderZaloga() {
       const z = zalR(p.id), lk = lokEff(p.id), dnN = stawkaNa(p.id, DZIEN_STAWEK), stN = stawkaRoli(p.id, '*', DZIEN_STAWEK) || domyslnaStawka(p);
       const inne = Object.keys(z.stawkiRol || {}).filter(r => r !== '*' && (z.stawkiRol[r].h != null || z.stawkiRol[r].d != null)).length;
       const pr = S.wnioski.filter(w => w.osoba === p.id && w.stan === 'nowy');
-      const st = [terminStan(z.badania), terminStan(z.bhp)];
+      const st = TERMINY.map(([k, n]) => Object.assign({ n }, terminStan(z[k])));
       const zle = st.find(x => x.kl === 'zle') || st.find(x => x.kl === 'uw');
       const sal = saldoOsoby(p.id), zo = zaliczkiOtwarte(p.id);
       rows.push(`<tr data-os="${p.id}" data-szukaj="${esc((p.sur + ' ' + p.im + ' ' + loginOf(p)).toLowerCase())}">
@@ -2805,7 +2808,7 @@ function renderZaloga() {
         <td class="mono ${zo ? '' : 'zero'}">${zo ? n0(zo) : '—'}</td>
         <td class="mono ${sal ? '' : 'zero'}">${sal ? n0(sal) : '—'}</td>
         <td class="l">${pr.length ? `<span class="pill czeka">${pr.length} ${odm(pr.length, 'nowa', 'nowe', 'nowych')}</span>` : '<span class="zero">—</span>'}</td>
-        <td class="l">${zle ? `<span class="stan-t ${zle.kl}">${esc(zle.txt)}</span>` : (z.badania || z.bhp ? '<span class="stan-t ok">aktualne</span>' : '<span class="zero">brak dat</span>')}</td>
+        <td class="l">${zle ? `<span class="stan-t ${zle.kl}">${esc(zle.n)} · ${esc(zle.txt)}</span>` : (z.badania || z.bhp ? '<span class="stan-t ok">aktualne</span>' : '<span class="zero">brak dat</span>')}</td>
       </tr>`);
     });
   });
@@ -2816,7 +2819,7 @@ function renderZaloga() {
         <div class="kafel"><span class="etykieta">W załodze</span><span class="w">${ludzie.length}</span><span class="p">${zDod} z drugą rolą · ${zSM} z Social Media</span></div>
         ${(() => { const l = (S.zaliczki || []).filter(z => z.mies === MIES_ROZL && P[z.osoba]), otw = l.filter(z => !z.umorzona).reduce((a, z) => a + z.kwota, 0), um = l.filter(z => z.umorzona).reduce((a, z) => a + z.kwota, 0), n = new Set(l.map(z => z.osoba)).size; return `<div class="kafel" data-tip="${esc(`Zaliczki i pożyczki|zaliczki do potrącenia (${nazwaMiesPoz(MIES_ROZL)}): ${zl(otw)} · ${n} ${odm(n, 'osoba', 'osoby', 'osób')}${um ? ` · umorzone ${zl(um)}` : ''}|pożyczki: ${aktPoz.length} · raty z listopada ${zl(ratyTeraz)}`)}"><span class="etykieta">Zaliczki i pożyczki</span><span class="w">${zl(otw + saldoAll)}</span><span class="p">zaliczki ${zl(otw)} · pożyczki ${zl(saldoAll)}</span></div>`; })()}
         <div class="kafel ${prosby ? 'alarm' : ''}"><span class="etykieta">Prośby</span><span class="w">${prosby}</span><span class="p">zaliczki, pożyczki i inne sprawy</span></div>
-        <div class="kafel ${doOdn ? 'alarm' : ''}"><span class="etykieta">Badania i BHP</span><span class="w">${doOdn}</span><span class="p">do odnowienia w 30 dni · ${bezDat} bez dat</span></div>
+        <div class="kafel ${doOdn ? 'alarm' : ''}" data-tip="Terminy|Sanepid, BHP i prawo pobytu: do odnowienia w 30 dni albo po terminie|bez dat: brak daty Sanepidu albo BHP"><span class="etykieta">Terminy</span><span class="w">${doOdn}</span><span class="p">do odnowienia w 30 dni · ${bezDat} bez dat</span></div>
       </div>
     </section>
     ${panelNowych()}
@@ -2824,7 +2827,7 @@ function renderZaloga() {
       <div class="narz zalN"><div class="role2" role="group" aria-label="Filtr ról">${filtry}</div><div class="mseg" role="group" aria-label="Miejsce pracy">${filtryM}</div>
         <label class="ukryte" for="szukaj">Szukaj osoby</label><input type="search" class="szukaj" id="szukaj" placeholder="Szukaj osoby lub loginu" autocomplete="off"></div>
       <div class="przew" style="max-height:min(76vh,1100px)"><table class="tab zal">
-        <thead><tr><th class="os l">Osoba</th><th class="l">Role</th><th class="l">Miejsca</th><th>Dniówka od 1.12</th><th>Zaliczki</th><th>Pożyczka</th><th class="l">Prośby</th><th class="l">Badania · BHP</th></tr></thead>
+        <thead><tr><th class="os l">Osoba</th><th class="l">Role</th><th class="l">Miejsca</th><th>Dniówka od 1.12</th><th>Zaliczki</th><th>Pożyczka</th><th class="l">Prośby</th><th class="l">Terminy</th></tr></thead>
         <tbody>${rows.join('') || `<tr><td class="l" colspan="8"><span class="zero">${filtr !== 'wszyscy' && !ludzie.some(p => (p.role || []).includes(filtr)) ? `Nikt nie ma jeszcze roli ${esc(ROLA_1[filtr] || filtr)} — nadasz ją na karcie osoby, w sekcji Role.` : 'Nikt nie pasuje do wybranych filtrów.'}</span></td></tr>`}</tbody>
       </table></div>
     </section>`;
@@ -3531,7 +3534,7 @@ document.addEventListener('change', e => {
     if (r !== '*' && nw.h == null && nw.d == null) delete z.stawkiRol[r]; else z.stawkiRol[r] = nw;
     setTimeout(() => { uruchom(); render(); if ($('.szuflada[data-karta]')) kartaZalogi(id); }, 0);
   }
-  if ((el.id === 'z-bad' || el.id === 'z-bhp') && el.dataset.id) { zal(el.dataset.id)[el.id === 'z-bad' ? 'badania' : 'bhp'] = el.value; zapisz(); render(); kartaZalogi(el.dataset.id); }
+  if (el.dataset && el.dataset.termin && el.dataset.id) { zal(el.dataset.id)[el.dataset.termin] = el.value; zapisz(); render(); kartaZalogi(el.dataset.id); }
   if (el.id === 'f-raty') { S.pForm = S.pForm || {}; S.pForm.raty = el.value; }
 });
 document.addEventListener('submit', e => {
