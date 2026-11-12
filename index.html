@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>Zespół</title>
-<meta name="team-wersja" content="1.4.3 · 2026-11-09">
+<meta name="team-wersja" content="1.4.4 · 2026-11-12">
 <meta name="robots" content="noindex, nofollow">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="favicon.png">
@@ -3195,6 +3195,32 @@ function kosztMies(k) {
   o.dn = o.F + o.R + o.U;
   return o;
 }
+/* 1.4.4 (12.11.2026): koszt załogi miesiąca dla w.dysza.app (Wynik) — jak kosztMies, ale wszystkie dni (kosztMies liczy
+   listopad tylko do dnia ze sprzedażą); do_dnia = ostatni dzień z kwotą. Złote, sumy bez osób. */
+function kosztMiesWynik(k) {
+  const o = { F: 0, R: 0, U: 0, osd: 0, dod: 0, bon: 0, do_dnia: 0 };
+  DATA.people.forEach(p => {
+    const m = p.m[k]; if (!m) return;
+    (m.d || []).forEach((c, i) => { if (!c) return; o.osd++; o.do_dnia = Math.max(o.do_dnia, i + 1); o[c[0] === 'F' || c[0] === 'R' ? c[0] : 'U'] += c[2] || 0; });
+    if (m.s) { o.dod += m.s.dodatek || 0; o.bon += m.s.bonus || 0; }
+    o.bon += zaliczkiW(p.id, k).um;
+  });
+  o.dn = o.F + o.R + o.U;
+  const r2 = x => Math.round((+x || 0) * 100) / 100;
+  return { dn: r2(o.dn), F: r2(o.F), R: r2(o.R), U: r2(o.U), dod: r2(o.dod), bon: r2(o.bon), osd: o.osd, do_dnia: o.do_dnia };
+}
+/* 1.4.4: po każdym wczytaniu danych (HR, Zarząd, Architekt) koszt załogi miesięcy trafia do bazy (team_koszt_zapisz) —
+   w.dysza.app liczy z niego wynik firmy. Tylko gdy się zmienił; błąd nie przeszkadza w pracy (Wynik weźmie ostatni zapis). */
+let KOSZTY_WYNIK = null;
+async function publikujKosztyZalogi() {
+  if (!JA || !['arch', 'hr', 'zarzad'].includes(JA.rola)) return;
+  const k = {};
+  MIESIACE.forEach(M => { const o = kosztMiesWynik(M.k); if (o.osd) k[M.k] = o; });
+  const js = JSON.stringify(k);
+  if (!Object.keys(k).length || js === KOSZTY_WYNIK) return;
+  try { await baza.rpc('team_koszt_zapisz', { p_koszty: k }); KOSZTY_WYNIK = js; }
+  catch (e) { if (window.console) console.warn('team_koszt_zapisz:', e && e.message ? e.message : e); }
+}
 function kosztPlanu() {
   const r = R(), o = { F: 0, R: 0, osd: r.totalShifts, byRole: {} };
   r.persons.forEach(x => {
@@ -4417,6 +4443,7 @@ function zaladuj(d, zachowaj) {
   }
   migrujZal();
   przeliczListopad();
+  publikujKosztyZalogi();                                       // 1.4.4: koszt załogi do w.dysza.app (bez czekania)
   if (typ === 'prac') declGen();
   else { const prev = PLANY_SERWER ? planyNaPrev(PLANY_SERWER) : null; uruchom(!prev, prev); }
   S.zmiany = new Set();
